@@ -58,5 +58,13 @@ ticker = "600487.SS"
 date   = "2026-05-08"   # YYYY-MM-DD, must be a past trading day
 _, decision = ta.propagate(ticker, date)
 
+from pathlib import Path
+from tradingagents.graph.markdown_export import save_analysis_markdown
+
+# `ta.curr_state` holds the final state from the last propagate() (see TradingAgentsGraph)
+output_dir = Path(__file__).parent / "analyses"
+md_path = save_analysis_markdown(ta.curr_state, ticker, date, output_dir)
+print(f"\n📄 Markdown report saved to: {md_path}")
+
 print("\n========== FINAL DECISION ==========")
 print(decision)
