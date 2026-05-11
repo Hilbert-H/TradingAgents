@@ -83,10 +83,11 @@ def get_indicator_akshare(
 
 
 @ak_retry()
-def get_insider_transactions_akshare(ticker: str, curr_date: str) -> str:
+def get_insider_transactions_akshare(ticker: str, curr_date: str = None) -> str:
     """Combined executive + 5%+ shareholder transactions for an A-share."""
     symbol = to_ak_symbol(ticker)
     market_symbol = to_ak_symbol_with_market(ticker)
+    date_suffix = f" (as of {curr_date})" if curr_date else ""
 
     sections = []
 
@@ -109,4 +110,4 @@ def get_insider_transactions_akshare(ticker: str, curr_date: str) -> str:
         logger.warning("stock_share_hold_change failed for %s: %s", market_symbol, e)
         sections.append("## Major Shareholder Transactions\n\n_Source unavailable._")
 
-    return f"# Insider transactions for {ticker} (as of {curr_date})\n\n" + "\n\n".join(sections)
+    return f"# Insider transactions for {ticker}{date_suffix}\n\n" + "\n\n".join(sections)

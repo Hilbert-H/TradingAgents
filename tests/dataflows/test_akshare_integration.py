@@ -72,10 +72,9 @@ from tradingagents.dataflows.akshare_market import get_insider_transactions_aksh
 
 
 def test_get_insider_transactions_akshare_returns_markdown():
-    out = get_insider_transactions_akshare(TEST_TICKER_SH, TEST_DATE)
+    out = get_insider_transactions_akshare(TEST_TICKER_SH)  # 1-arg call (like the wrapper)
     assert isinstance(out, str)
     assert "##" in out
-    # Either there's recent insider activity (table with rows) or a "No data" note
     assert "600487" in out or "No data" in out
     _assert_real_data(out, "get_insider_transactions_akshare")
 
