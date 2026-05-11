@@ -1,4 +1,5 @@
 from typing import Annotated
+import logging
 
 # Import from vendor-specific modules
 from .y_finance import (
@@ -23,9 +24,50 @@ from .alpha_vantage import (
     get_global_news as get_alpha_vantage_global_news,
 )
 from .alpha_vantage_common import AlphaVantageRateLimitError
+from .akshare_common import NotApplicableError
+from .akshare_market import (
+    get_stock_akshare,
+    get_indicator_akshare,
+    get_insider_transactions_akshare,
+)
+from .akshare_news import (
+    get_news_akshare,
+    get_global_news_akshare,
+    get_announcements_akshare,
+)
+from .akshare_sentiment import (
+    get_stock_hot_rank_akshare,
+    get_shareholder_count_akshare,
+    get_research_reports_akshare,
+)
+from .akshare_fundamentals import (
+    get_fundamentals_akshare,
+    get_balance_sheet_akshare,
+    get_cashflow_akshare,
+    get_income_statement_akshare,
+)
+from .akshare_capital_flow import (
+    get_lhb_detail_akshare,
+    get_lhb_institutional_akshare,
+    get_north_capital_individual_akshare,
+    get_north_capital_overall_akshare,
+    get_margin_trading_akshare,
+    get_fund_flow_akshare,
+)
 
 # Configuration and routing logic
 from .config import get_config
+
+logger = logging.getLogger(__name__)
+
+A_SHARE_SUFFIXES = (".SS", ".SZ")
+
+
+def _detect_market(ticker) -> str:
+    """Return 'a_share' if ticker has Shanghai/Shenzhen suffix, else 'global'."""
+    if not ticker or not isinstance(ticker, str):
+        return "global"
+    return "a_share" if ticker.upper().endswith(A_SHARE_SUFFIXES) else "global"
 
 # Tools organized by category
 TOOLS_CATEGORIES = {
@@ -51,19 +93,24 @@ TOOLS_CATEGORIES = {
         ]
     },
     "news_data": {
-        "description": "News and insider data",
+        "description": "News, announcements, insider, and A-share sentiment proxies",
         "tools": [
-            "get_news",
-            "get_global_news",
-            "get_insider_transactions",
-        ]
-    }
+            "get_news", "get_global_news", "get_insider_transactions",
+            "get_announcements",
+            "get_stock_hot_rank", "get_shareholder_count", "get_research_reports",
+        ],
+    },
+    "capital_flow": {
+        "description": "A-share capital flow signals",
+        "tools": [
+            "get_lhb_detail", "get_lhb_institutional",
+            "get_north_capital_individual", "get_north_capital_overall",
+            "get_margin_trading", "get_fund_flow",
+        ],
+    },
 }
 
-VENDOR_LIST = [
-    "yfinance",
-    "alpha_vantage",
-]
+VENDOR_LIST = ["yfinance", "alpha_vantage", "akshare"]
 
 # Mapping of methods to their vendor-specific implementations
 VENDOR_METHODS = {
@@ -71,42 +118,62 @@ VENDOR_METHODS = {
     "get_stock_data": {
         "alpha_vantage": get_alpha_vantage_stock,
         "yfinance": get_YFin_data_online,
+        "akshare": get_stock_akshare,
     },
     # technical_indicators
     "get_indicators": {
         "alpha_vantage": get_alpha_vantage_indicator,
         "yfinance": get_stock_stats_indicators_window,
+        "akshare": get_indicator_akshare,
     },
     # fundamental_data
     "get_fundamentals": {
         "alpha_vantage": get_alpha_vantage_fundamentals,
         "yfinance": get_yfinance_fundamentals,
+        "akshare": get_fundamentals_akshare,
     },
     "get_balance_sheet": {
         "alpha_vantage": get_alpha_vantage_balance_sheet,
         "yfinance": get_yfinance_balance_sheet,
+        "akshare": get_balance_sheet_akshare,
     },
     "get_cashflow": {
         "alpha_vantage": get_alpha_vantage_cashflow,
         "yfinance": get_yfinance_cashflow,
+        "akshare": get_cashflow_akshare,
     },
     "get_income_statement": {
         "alpha_vantage": get_alpha_vantage_income_statement,
         "yfinance": get_yfinance_income_statement,
+        "akshare": get_income_statement_akshare,
     },
     # news_data
     "get_news": {
         "alpha_vantage": get_alpha_vantage_news,
         "yfinance": get_news_yfinance,
+        "akshare": get_news_akshare,
     },
     "get_global_news": {
         "yfinance": get_global_news_yfinance,
         "alpha_vantage": get_alpha_vantage_global_news,
+        "akshare": get_global_news_akshare,
     },
     "get_insider_transactions": {
         "alpha_vantage": get_alpha_vantage_insider_transactions,
         "yfinance": get_yfinance_insider_transactions,
+        "akshare": get_insider_transactions_akshare,
     },
+    # New methods (akshare-only)
+    "get_announcements":               {"akshare": get_announcements_akshare},
+    "get_stock_hot_rank":              {"akshare": get_stock_hot_rank_akshare},
+    "get_shareholder_count":           {"akshare": get_shareholder_count_akshare},
+    "get_research_reports":            {"akshare": get_research_reports_akshare},
+    "get_lhb_detail":                  {"akshare": get_lhb_detail_akshare},
+    "get_lhb_institutional":           {"akshare": get_lhb_institutional_akshare},
+    "get_north_capital_individual":    {"akshare": get_north_capital_individual_akshare},
+    "get_north_capital_overall":       {"akshare": get_north_capital_overall_akshare},
+    "get_margin_trading":              {"akshare": get_margin_trading_akshare},
+    "get_fund_flow":                   {"akshare": get_fund_flow_akshare},
 }
 
 def get_category_for_method(method: str) -> str:
@@ -132,31 +199,82 @@ def get_vendor(category: str, method: str = None) -> str:
     return config.get("data_vendors", {}).get(category, "default")
 
 def route_to_vendor(method: str, *args, **kwargs):
-    """Route method calls to appropriate vendor implementation with fallback support."""
-    category = get_category_for_method(method)
-    vendor_config = get_vendor(category, method)
-    primary_vendors = [v.strip() for v in vendor_config.split(',')]
+    """Route method calls to appropriate vendor with fallback support.
 
+    Resolution order:
+      1. If the first positional arg / `ticker` / `symbol` kwarg looks like
+         an A-share ticker (`.SS` / `.SZ` suffix), force akshare as the
+         primary vendor — unless the user has set a method-level
+         `tool_vendors` override, which always wins.
+      2. Otherwise, use the user-configured vendor for the category.
+      3. Build a fallback chain: primary + every other available vendor.
+      4. Walk the chain. Skip on AlphaVantageRateLimitError (existing
+         behaviour). Skip on NotApplicableError (new). Skip on any other
+         Exception with a warning log.
+      5. If chain exhausted and every failure was NotApplicableError ->
+         return an "N/A: ..." string.
+      6. If chain exhausted with at least one real error -> return a
+         "Data unavailable: ..." string.
+    """
     if method not in VENDOR_METHODS:
         raise ValueError(f"Method '{method}' not supported")
 
-    # Build fallback chain: primary vendors first, then remaining available vendors
-    all_available_vendors = list(VENDOR_METHODS[method].keys())
-    fallback_vendors = primary_vendors.copy()
-    for vendor in all_available_vendors:
+    category = get_category_for_method(method)
+    config = get_config()
+
+    # Determine ticker (used both for A-share routing and for the N/A message)
+    ticker = args[0] if args else (kwargs.get("ticker") or kwargs.get("symbol"))
+    market = _detect_market(ticker)
+
+    tool_override = config.get("tool_vendors", {}).get(method)
+    if tool_override:
+        primary_vendors = [tool_override]
+    elif market == "a_share":
+        primary_vendors = ["akshare"]
+        logger.info("Ticker %s detected as A-share, routing %s to akshare", ticker, method)
+    else:
+        vendor_config = config.get("data_vendors", {}).get(category, "default")
+        primary_vendors = [v.strip() for v in vendor_config.split(",")]
+
+    # Build fallback chain
+    all_available = list(VENDOR_METHODS[method].keys())
+    fallback_vendors = list(primary_vendors)
+    for vendor in all_available:
         if vendor not in fallback_vendors:
             fallback_vendors.append(vendor)
+
+    any_vendor_attempted = False
+    seen_only_not_applicable = True
+    last_error: Exception = None
 
     for vendor in fallback_vendors:
         if vendor not in VENDOR_METHODS[method]:
             continue
-
+        any_vendor_attempted = True
         vendor_impl = VENDOR_METHODS[method][vendor]
         impl_func = vendor_impl[0] if isinstance(vendor_impl, list) else vendor_impl
-
         try:
             return impl_func(*args, **kwargs)
-        except AlphaVantageRateLimitError:
-            continue  # Only rate limits trigger fallback
+        except AlphaVantageRateLimitError as e:
+            seen_only_not_applicable = False
+            last_error = e
+            continue
+        except NotApplicableError as e:
+            last_error = e
+            continue
+        except Exception as e:
+            seen_only_not_applicable = False
+            last_error = e
+            logger.warning("vendor %s failed for method %s: %s", vendor, method, e)
+            continue
 
-    raise RuntimeError(f"No available vendor for '{method}'")
+    if not any_vendor_attempted:
+        return f"Data unavailable: no vendor registered for {method!r}."
+
+    if seen_only_not_applicable:
+        return (
+            f"N/A: {method} is not supported for ticker {ticker!r}. "
+            f"(All available vendors raised NotApplicableError; "
+            f"this method typically requires an A-share ticker.)"
+        )
+    return f"Data unavailable: {method} failed across all vendors. Last error: {last_error}"

@@ -220,3 +220,4 @@ __marimo__/
 
 # Git worktrees (project-local isolated workspaces)
 .worktrees/
+analyses/

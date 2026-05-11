@@ -36,7 +36,17 @@ from tradingagents.agents.utils.agent_utils import (
     get_income_statement,
     get_news,
     get_insider_transactions,
-    get_global_news
+    get_global_news,
+    get_announcements,
+    get_stock_hot_rank,
+    get_shareholder_count,
+    get_research_reports,
+    get_lhb_detail,
+    get_lhb_institutional,
+    get_north_capital_individual,
+    get_north_capital_overall,
+    get_margin_trading,
+    get_fund_flow,
 )
 
 from .checkpointer import checkpoint_step, clear_checkpoint, get_checkpointer, thread_id
@@ -157,37 +167,36 @@ class TradingAgentsGraph:
     def _create_tool_nodes(self) -> Dict[str, ToolNode]:
         """Create tool nodes for different data sources using abstract methods."""
         return {
-            "market": ToolNode(
-                [
-                    # Core stock data tools
-                    get_stock_data,
-                    # Technical indicators
-                    get_indicators,
-                ]
-            ),
-            "social": ToolNode(
-                [
-                    # News tools for social media analysis
-                    get_news,
-                ]
-            ),
-            "news": ToolNode(
-                [
-                    # News and insider information
-                    get_news,
-                    get_global_news,
-                    get_insider_transactions,
-                ]
-            ),
-            "fundamentals": ToolNode(
-                [
-                    # Fundamental analysis tools
-                    get_fundamentals,
-                    get_balance_sheet,
-                    get_cashflow,
-                    get_income_statement,
-                ]
-            ),
+            "market": ToolNode([
+                get_stock_data,
+                get_indicators,
+            ]),
+            "social": ToolNode([
+                get_news,
+                get_stock_hot_rank,
+                get_shareholder_count,
+                get_research_reports,
+            ]),
+            "news": ToolNode([
+                get_news,
+                get_global_news,
+                get_insider_transactions,
+                get_announcements,
+            ]),
+            "fundamentals": ToolNode([
+                get_fundamentals,
+                get_balance_sheet,
+                get_cashflow,
+                get_income_statement,
+            ]),
+            "capital_flow": ToolNode([
+                get_lhb_detail,
+                get_lhb_institutional,
+                get_north_capital_individual,
+                get_north_capital_overall,
+                get_margin_trading,
+                get_fund_flow,
+            ]),
         }
 
     def _fetch_returns(
@@ -362,6 +371,7 @@ class TradingAgentsGraph:
             "sentiment_report": final_state["sentiment_report"],
             "news_report": final_state["news_report"],
             "fundamentals_report": final_state["fundamentals_report"],
+            "capital_flow_report": final_state.get("capital_flow_report", ""),
             "investment_debate_state": {
                 "bull_history": final_state["investment_debate_state"]["bull_history"],
                 "bear_history": final_state["investment_debate_state"]["bear_history"],

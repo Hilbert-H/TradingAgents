@@ -16,7 +16,19 @@ from tradingagents.agents.utils.fundamental_data_tools import (
 from tradingagents.agents.utils.news_data_tools import (
     get_news,
     get_insider_transactions,
-    get_global_news
+    get_global_news,
+    get_announcements,
+    get_stock_hot_rank,
+    get_shareholder_count,
+    get_research_reports,
+)
+from tradingagents.agents.utils.capital_flow_tools import (
+    get_lhb_detail,
+    get_lhb_institutional,
+    get_north_capital_individual,
+    get_north_capital_overall,
+    get_margin_trading,
+    get_fund_flow,
 )
 
 

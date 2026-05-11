@@ -11,6 +11,7 @@ def create_bear_researcher(llm):
         sentiment_report = state["sentiment_report"]
         news_report = state["news_report"]
         fundamentals_report = state["fundamentals_report"]
+        capital_flow_report = state.get("capital_flow_report", "")
 
         prompt = f"""You are a Bear Analyst making the case against investing in the stock. Your goal is to present a well-reasoned argument emphasizing risks, challenges, and negative indicators. Leverage the provided research and data to highlight potential downsides and counter bullish arguments effectively.
 
@@ -28,6 +29,10 @@ Market research report: {market_research_report}
 Social media sentiment report: {sentiment_report}
 Latest world affairs news: {news_report}
 Company fundamentals report: {fundamentals_report}
+Capital flow report (A-share only, "N/A" otherwise): {capital_flow_report}
+
+For A-share tickers, the capital_flow_report is a critical short-term signal — weight it heavily when the holding horizon is short. For non-A-share tickers it will be "N/A: ..."; ignore it.
+
 Conversation history of the debate: {history}
 Last bull argument: {current_response}
 Use this information to deliver a compelling bear argument, refute the bull's claims, and engage in a dynamic debate that demonstrates the risks and weaknesses of investing in the stock.
