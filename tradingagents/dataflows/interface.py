@@ -189,12 +189,14 @@ def route_to_vendor(method: str, *args, **kwargs):
         if vendor not in fallback_vendors:
             fallback_vendors.append(vendor)
 
+    any_vendor_attempted = False
     seen_only_not_applicable = True
     last_error: Exception = None
 
     for vendor in fallback_vendors:
         if vendor not in VENDOR_METHODS[method]:
             continue
+        any_vendor_attempted = True
         vendor_impl = VENDOR_METHODS[method][vendor]
         impl_func = vendor_impl[0] if isinstance(vendor_impl, list) else vendor_impl
         try:
@@ -212,7 +214,9 @@ def route_to_vendor(method: str, *args, **kwargs):
             logger.warning("vendor %s failed for method %s: %s", vendor, method, e)
             continue
 
-    # Chain exhausted
+    if not any_vendor_attempted:
+        return f"Data unavailable: no vendor registered for {method!r}."
+
     if seen_only_not_applicable:
         return (
             f"N/A: {method} is not supported for ticker {ticker!r}. "

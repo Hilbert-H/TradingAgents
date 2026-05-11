@@ -61,6 +61,13 @@ def test_route_to_vendor_tool_override_beats_auto_routing(monkeypatch):
 
 
 def test_route_to_vendor_not_applicable_falls_back_to_next(monkeypatch):
+    """NotApplicableError skips a vendor and continues the chain.
+
+    alpha_vantage is also stubbed (to NotApplicableError) because the real
+    alpha_vantage implementation returns an error STRING rather than raising
+    on API failure — without this stub the chain would 'succeed' at
+    alpha_vantage and never reach the yfinance fallback this test verifies.
+    """
     monkeypatch.setitem(interface.VENDOR_METHODS["get_news"],
                         "akshare", _failing_vendor(NotApplicableError("nope")))
     monkeypatch.setitem(interface.VENDOR_METHODS["get_news"],
@@ -104,3 +111,19 @@ def test_route_to_vendor_returns_data_unavailable_when_all_error(monkeypatch):
     result = interface.route_to_vendor("get_news", "NVDA", "2026-05-01", "2026-05-08")
     assert isinstance(result, str)
     assert result.startswith("Data unavailable")
+
+
+def test_route_to_vendor_no_vendor_registered_returns_data_unavailable(monkeypatch):
+    """If a method is registered but has no usable vendor entry, return a clear
+    'no vendor registered' message rather than the misleading 'N/A' string."""
+    monkeypatch.setitem(interface.VENDOR_METHODS, "phantom_method", {})
+    monkeypatch.setitem(
+        interface.TOOLS_CATEGORIES, "news_data",
+        {**interface.TOOLS_CATEGORIES["news_data"],
+         "tools": interface.TOOLS_CATEGORIES["news_data"]["tools"] + ["phantom_method"]},
+    )
+    monkeypatch.setattr(interface, "get_config", lambda: {"data_vendors": {}, "tool_vendors": {}})
+    result = interface.route_to_vendor("phantom_method", "NVDA")
+    assert isinstance(result, str)
+    assert "no vendor registered" in result.lower()
+    assert "phantom_method" in result
