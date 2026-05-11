@@ -98,6 +98,52 @@ Our framework decomposes complex trading tasks into specialized roles. This ensu
   <img src="assets/risk.png" width="70%" style="display: inline-block; margin: 0 2%;">
 </p>
 
+## A-Share Support
+
+TradingAgents supports Shanghai / Shenzhen A-shares via the `akshare` vendor.
+
+### Ticker format
+
+Use yfinance-style exchange suffixes:
+- `600487.SS` — Shanghai (codes starting with `6`)
+- `000001.SZ` — Shenzhen (codes starting with `0` / `3`)
+
+Beijing Stock Exchange (`4` / `8` codes) is not yet supported.
+
+### Configuration
+
+No vendor configuration is needed — `.SS` / `.SZ` tickers automatically route
+to akshare. Add `"capital_flow"` to `selected_analysts` to enable the A-share
+Capital Flow Analyst (Dragon-Tiger List, Northbound Capital, Margin Trading,
+smart-money flow):
+
+```python
+ta = TradingAgentsGraph(
+    selected_analysts=["market", "social", "news", "fundamentals", "capital_flow"],
+    config=config,
+)
+```
+
+### Agent coverage on A-shares
+
+| Agent | A-share signal |
+|---|---|
+| market_analyst | Daily OHLCV + technical indicators |
+| social_analyst | Attention rank + shareholder count + analyst research reports |
+| news_analyst | Individual stock news + legal-disclosure announcements (法定信披) + macro news |
+| fundamentals_analyst | 5y annual + 4Q quarterly statements |
+| capital_flow_analyst | 龙虎榜 / 北上资金 / 融资融券 / 主力资金流向 |
+
+### Known limitations
+
+- Beijing Stock Exchange tickers (codes 4xxxxx / 8xxxxx) are out of scope.
+- Akshare hits public endpoints; occasional rate-limit failures are retried
+  with exponential backoff. Persistent failures degrade to a "Data unavailable"
+  string the agent reads as missing input rather than crashing the graph.
+- The akshare vendor automatically bypasses HTTP(S) proxy env vars during
+  calls, because akshare endpoints are Chinese-domain hosts reachable
+  directly without proxy.
+
 ## Installation and CLI
 
 ### Installation
