@@ -68,7 +68,7 @@ def get_announcements_akshare(ticker: str, start_date: str, end_date: str) -> st
     cursor = start
     while cursor <= end:
         try:
-            daily = ak.stock_notice_report(symbol="all", date=cursor.strftime("%Y%m%d"))
+            daily = ak.stock_notice_report(symbol="全部", date=cursor.strftime("%Y%m%d"))
             if daily is not None and not daily.empty:
                 # Filter rows that reference this ticker
                 code_col = next((c for c in daily.columns if "代码" in c), None)
