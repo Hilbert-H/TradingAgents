@@ -25,6 +25,35 @@ from .alpha_vantage import (
 )
 from .alpha_vantage_common import AlphaVantageRateLimitError
 from .akshare_common import NotApplicableError
+from .akshare_market import (
+    get_stock_akshare,
+    get_indicator_akshare,
+    get_insider_transactions_akshare,
+)
+from .akshare_news import (
+    get_news_akshare,
+    get_global_news_akshare,
+    get_announcements_akshare,
+)
+from .akshare_sentiment import (
+    get_stock_hot_rank_akshare,
+    get_shareholder_count_akshare,
+    get_research_reports_akshare,
+)
+from .akshare_fundamentals import (
+    get_fundamentals_akshare,
+    get_balance_sheet_akshare,
+    get_cashflow_akshare,
+    get_income_statement_akshare,
+)
+from .akshare_capital_flow import (
+    get_lhb_detail_akshare,
+    get_lhb_institutional_akshare,
+    get_north_capital_individual_akshare,
+    get_north_capital_overall_akshare,
+    get_margin_trading_akshare,
+    get_fund_flow_akshare,
+)
 
 # Configuration and routing logic
 from .config import get_config
@@ -64,19 +93,24 @@ TOOLS_CATEGORIES = {
         ]
     },
     "news_data": {
-        "description": "News and insider data",
+        "description": "News, announcements, insider, and A-share sentiment proxies",
         "tools": [
-            "get_news",
-            "get_global_news",
-            "get_insider_transactions",
-        ]
-    }
+            "get_news", "get_global_news", "get_insider_transactions",
+            "get_announcements",
+            "get_stock_hot_rank", "get_shareholder_count", "get_research_reports",
+        ],
+    },
+    "capital_flow": {
+        "description": "A-share capital flow signals",
+        "tools": [
+            "get_lhb_detail", "get_lhb_institutional",
+            "get_north_capital_individual", "get_north_capital_overall",
+            "get_margin_trading", "get_fund_flow",
+        ],
+    },
 }
 
-VENDOR_LIST = [
-    "yfinance",
-    "alpha_vantage",
-]
+VENDOR_LIST = ["yfinance", "alpha_vantage", "akshare"]
 
 # Mapping of methods to their vendor-specific implementations
 VENDOR_METHODS = {
@@ -84,42 +118,62 @@ VENDOR_METHODS = {
     "get_stock_data": {
         "alpha_vantage": get_alpha_vantage_stock,
         "yfinance": get_YFin_data_online,
+        "akshare": get_stock_akshare,
     },
     # technical_indicators
     "get_indicators": {
         "alpha_vantage": get_alpha_vantage_indicator,
         "yfinance": get_stock_stats_indicators_window,
+        "akshare": get_indicator_akshare,
     },
     # fundamental_data
     "get_fundamentals": {
         "alpha_vantage": get_alpha_vantage_fundamentals,
         "yfinance": get_yfinance_fundamentals,
+        "akshare": get_fundamentals_akshare,
     },
     "get_balance_sheet": {
         "alpha_vantage": get_alpha_vantage_balance_sheet,
         "yfinance": get_yfinance_balance_sheet,
+        "akshare": get_balance_sheet_akshare,
     },
     "get_cashflow": {
         "alpha_vantage": get_alpha_vantage_cashflow,
         "yfinance": get_yfinance_cashflow,
+        "akshare": get_cashflow_akshare,
     },
     "get_income_statement": {
         "alpha_vantage": get_alpha_vantage_income_statement,
         "yfinance": get_yfinance_income_statement,
+        "akshare": get_income_statement_akshare,
     },
     # news_data
     "get_news": {
         "alpha_vantage": get_alpha_vantage_news,
         "yfinance": get_news_yfinance,
+        "akshare": get_news_akshare,
     },
     "get_global_news": {
         "yfinance": get_global_news_yfinance,
         "alpha_vantage": get_alpha_vantage_global_news,
+        "akshare": get_global_news_akshare,
     },
     "get_insider_transactions": {
         "alpha_vantage": get_alpha_vantage_insider_transactions,
         "yfinance": get_yfinance_insider_transactions,
+        "akshare": get_insider_transactions_akshare,
     },
+    # New methods (akshare-only)
+    "get_announcements":               {"akshare": get_announcements_akshare},
+    "get_stock_hot_rank":              {"akshare": get_stock_hot_rank_akshare},
+    "get_shareholder_count":           {"akshare": get_shareholder_count_akshare},
+    "get_research_reports":            {"akshare": get_research_reports_akshare},
+    "get_lhb_detail":                  {"akshare": get_lhb_detail_akshare},
+    "get_lhb_institutional":           {"akshare": get_lhb_institutional_akshare},
+    "get_north_capital_individual":    {"akshare": get_north_capital_individual_akshare},
+    "get_north_capital_overall":       {"akshare": get_north_capital_overall_akshare},
+    "get_margin_trading":              {"akshare": get_margin_trading_akshare},
+    "get_fund_flow":                   {"akshare": get_fund_flow_akshare},
 }
 
 def get_category_for_method(method: str) -> str:
