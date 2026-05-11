@@ -45,7 +45,7 @@ class NotApplicableError(Exception):
     """
 
 
-A_SHARE_SUFFIXES = (".SS", ".SZ")
+A_SHARE_SUFFIXES = (".SS", ".SH", ".SZ")  # .SS / .SH both alias Shanghai
 
 
 def is_a_share(ticker: Optional[str]) -> bool:

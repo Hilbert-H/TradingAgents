@@ -60,7 +60,7 @@ from .config import get_config
 
 logger = logging.getLogger(__name__)
 
-A_SHARE_SUFFIXES = (".SS", ".SZ")
+A_SHARE_SUFFIXES = (".SS", ".SH", ".SZ")  # .SS / .SH both alias Shanghai
 
 
 def _detect_market(ticker) -> str:
