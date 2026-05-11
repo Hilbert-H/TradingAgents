@@ -86,7 +86,7 @@ class GraphSetup:
         bull_researcher_node = create_bull_researcher(self.quick_thinking_llm)
         bear_researcher_node = create_bear_researcher(self.quick_thinking_llm)
         research_manager_node = create_research_manager(self.deep_thinking_llm)
-        trader_node = create_trader(self.quick_thinking_llm)
+        trader_node = create_trader(self.deep_thinking_llm)  # Pro: trader converts analysis to concrete entry/stop/sizing
 
         # Create risk analysis nodes
         aggressive_analyst = create_aggressive_debator(self.quick_thinking_llm)
