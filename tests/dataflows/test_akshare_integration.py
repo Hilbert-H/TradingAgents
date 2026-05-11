@@ -75,3 +75,18 @@ def test_get_global_news_akshare_returns_articles():
     out = get_global_news_akshare(TEST_DATE, look_back_days=2, limit=10)
     assert isinstance(out, str)
     assert "##" in out
+
+
+from tradingagents.dataflows.akshare_news import get_announcements_akshare
+
+
+def test_get_announcements_akshare_returns_markdown():
+    out = get_announcements_akshare(TEST_TICKER_SH, "2026-04-01", TEST_DATE)
+    assert isinstance(out, str)
+    assert "##" in out
+
+
+def test_get_announcements_akshare_raises_for_non_a_share():
+    from tradingagents.dataflows.akshare_common import NotApplicableError
+    with pytest.raises(NotApplicableError):
+        get_announcements_akshare("NVDA", "2026-04-01", TEST_DATE)

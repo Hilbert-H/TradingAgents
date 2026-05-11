@@ -55,5 +55,33 @@ def get_global_news_akshare(curr_date: str, look_back_days: int = 7, limit: int 
     return format_df_as_md(df, f"Global news as of {curr_date} (last {look_back_days}d)", max_rows=limit)
 
 
-def get_announcements_akshare(*_a, **_k):
-    raise NotImplementedError("akshare_news.get_announcements_akshare — Task 10")
+@ak_retry()
+def get_announcements_akshare(ticker: str, start_date: str, end_date: str) -> str:
+    """Legal disclosure announcements (法定信披) from CNINFO/EastMoney."""
+    symbol = to_ak_symbol(ticker)
+
+    # stock_notice_report returns a daily snapshot; walk the date window
+    from datetime import datetime, timedelta
+    start = datetime.strptime(start_date, "%Y-%m-%d")
+    end = datetime.strptime(end_date, "%Y-%m-%d")
+    frames = []
+    cursor = start
+    while cursor <= end:
+        try:
+            daily = ak.stock_notice_report(symbol="all", date=cursor.strftime("%Y%m%d"))
+            if daily is not None and not daily.empty:
+                # Filter rows that reference this ticker
+                code_col = next((c for c in daily.columns if "代码" in c), None)
+                if code_col:
+                    hit = daily[daily[code_col].astype(str).str.zfill(6) == symbol]
+                    if not hit.empty:
+                        frames.append(hit)
+        except Exception as e:
+            logger.warning("stock_notice_report on %s failed: %s", cursor, e)
+        cursor += timedelta(days=1)
+
+    if not frames:
+        return f"## Announcements for {ticker} {start_date} → {end_date}\n\n_No filings._"
+
+    combined = pd.concat(frames, ignore_index=True)
+    return format_df_as_md(combined, f"Announcements for {ticker} {start_date} → {end_date}", max_rows=40)
