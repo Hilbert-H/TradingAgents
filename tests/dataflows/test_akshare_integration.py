@@ -127,3 +127,12 @@ def test_get_fundamentals_akshare_returns_summary():
     assert isinstance(out, str)
     assert "##" in out
     assert "600487" in out or "亨通" in out
+
+
+from tradingagents.dataflows.akshare_fundamentals import get_balance_sheet_akshare
+
+
+def test_get_balance_sheet_akshare_returns_table():
+    out = get_balance_sheet_akshare(TEST_TICKER_SH, TEST_DATE)
+    assert isinstance(out, str)
+    assert "##" in out
