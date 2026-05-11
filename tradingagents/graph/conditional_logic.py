@@ -47,7 +47,7 @@ class ConditionalLogic:
         """Determine if capital flow analysis should continue."""
         messages = state["messages"]
         last_message = messages[-1]
-        if last_message.tool_calls:
+        if getattr(last_message, "tool_calls", None):
             return "tools_capital_flow"
         return "Msg Clear Capital_flow"
 
