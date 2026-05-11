@@ -46,3 +46,14 @@ def test_get_indicator_akshare_returns_indicator_values():
     assert isinstance(out, str)
     assert "close_50_sma" in out or "50 SMA" in out
     assert "2026-" in out
+
+
+from tradingagents.dataflows.akshare_market import get_insider_transactions_akshare
+
+
+def test_get_insider_transactions_akshare_returns_markdown():
+    out = get_insider_transactions_akshare(TEST_TICKER_SH, TEST_DATE)
+    assert isinstance(out, str)
+    assert "##" in out
+    # Either there's recent insider activity (table with rows) or a "No data" note
+    assert "600487" in out or "No data" in out

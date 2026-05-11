@@ -79,5 +79,31 @@ def get_indicator_akshare(
     return format_df_as_md(result.reset_index(), f"{ticker} {indicator} (last {look_back_days} days)", max_rows=look_back_days)
 
 
-def get_insider_transactions_akshare(*_a, **_k):
-    raise NotImplementedError("akshare_market.get_insider_transactions_akshare — Task 7")
+@ak_retry()
+def get_insider_transactions_akshare(ticker: str, curr_date: str) -> str:
+    """Combined executive + 5%+ shareholder transactions for an A-share."""
+    symbol = to_ak_symbol(ticker)
+    market_symbol = to_ak_symbol_with_market(ticker)
+
+    sections = []
+
+    # 1) Executive transactions (高管增减持)
+    try:
+        execs = ak.stock_ggcg_em(symbol=symbol)
+        sections.append(format_df_as_md(execs, "Executive (高管) Transactions", max_rows=30))
+    except Exception as e:
+        logger.warning("stock_ggcg_em failed for %s: %s", symbol, e)
+        sections.append("## Executive (高管) Transactions\n\n_Source unavailable._")
+
+    # 2) Major shareholder (5%+) transactions — endpoint depends on exchange
+    try:
+        if market_symbol.startswith("SH"):
+            major = ak.stock_share_hold_change_sse(symbol=symbol)
+        else:
+            major = ak.stock_share_hold_change_szse(symbol=symbol)
+        sections.append(format_df_as_md(major, "Major Shareholder (>=5%) Transactions", max_rows=30))
+    except Exception as e:
+        logger.warning("stock_share_hold_change failed for %s: %s", market_symbol, e)
+        sections.append("## Major Shareholder Transactions\n\n_Source unavailable._")
+
+    return f"# Insider transactions for {ticker} (as of {curr_date})\n\n" + "\n\n".join(sections)
