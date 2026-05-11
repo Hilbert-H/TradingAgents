@@ -1,5 +1,6 @@
 """Shared helpers for the akshare vendor implementations."""
 
+import functools
 import logging
 import os
 import time
@@ -112,6 +113,45 @@ def ak_retry(max_attempts: int = 3, base_delay: float = 1.0):
             raise last_exc
         return wrapper
     return deco
+
+
+@functools.lru_cache(maxsize=1)
+def _a_share_code_to_name_map() -> dict:
+    """Build a full A-share code → Chinese name map once per session.
+
+    Uses ak.stock_info_a_code_name (Sina-based), which works from networks
+    where push2his.eastmoney.com is blocked. Cached process-wide so the
+    multi-minute fetch happens only once per run.
+    """
+    try:
+        import akshare as ak
+        with _no_proxy_env():
+            df = ak.stock_info_a_code_name()
+        if df is None or df.empty:
+            return {}
+        return dict(zip(df["code"].astype(str), df["name"].astype(str)))
+    except Exception as e:
+        logger.warning("_a_share_code_to_name_map failed to build: %s", e)
+        return {}
+
+
+@functools.lru_cache(maxsize=256)
+def get_a_share_name(ticker: str) -> str:
+    """Look up the Chinese name for an A-share ticker.
+
+    Returns the company's Chinese short name (e.g. '亨通光电' for '600487.SS').
+    Falls back to the bare 6-digit code when lookup fails, so callers can
+    still produce a deterministic filename.
+
+    Per-ticker cached. The underlying full-market table is cached separately
+    so subsequent lookups are O(1).
+    """
+    if not is_a_share(ticker):
+        return ticker  # fallback: use original ticker as the "name"
+    code = to_ak_symbol(ticker)
+    name_map = _a_share_code_to_name_map()
+    name = name_map.get(code, "").strip()
+    return name if name else code
 
 
 def format_df_as_md(df: Optional[pd.DataFrame], title: str, max_rows: int = 30) -> str:
