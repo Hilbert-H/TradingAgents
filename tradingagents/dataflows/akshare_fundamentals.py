@@ -11,8 +11,8 @@ from .akshare_common import (
 logger = logging.getLogger(__name__)
 
 
-def _select_periods(df: pd.DataFrame, period_col: str) -> pd.DataFrame:
-    """Keep 5 most-recent annual reports + 4 most-recent quarterly reports.
+def _select_periods(df: pd.DataFrame, period_col: str, freq: str = "quarterly") -> pd.DataFrame:
+    """Keep 5 annual reports + 4 quarterlies (default quarterly), or only annuals if freq='annual'.
 
     Annual reports end with '1231'; quarterly with '0331', '0630', '0930'.
     """
@@ -21,9 +21,12 @@ def _select_periods(df: pd.DataFrame, period_col: str) -> pd.DataFrame:
     periods = pd.to_datetime(df[period_col], errors="coerce")
     df = df.assign(_period=periods).sort_values("_period", ascending=False)
     annual = df[df["_period"].dt.strftime("%m%d") == "1231"].head(5)
-    quarterly = df[df["_period"].dt.strftime("%m%d") != "1231"].head(4)
-    result = pd.concat([annual, quarterly]).sort_values("_period", ascending=False).drop(columns=["_period"])
-    return result
+    if freq == "annual":
+        result = annual
+    else:
+        quarterly = df[df["_period"].dt.strftime("%m%d") != "1231"].head(4)
+        result = pd.concat([annual, quarterly]).sort_values("_period", ascending=False)
+    return result.drop(columns=["_period"])
 
 
 @ak_retry()
@@ -44,7 +47,7 @@ def get_fundamentals_akshare(ticker: str, curr_date: str) -> str:
 
 
 @ak_retry()
-def get_balance_sheet_akshare(ticker: str, curr_date: str) -> str:
+def get_balance_sheet_akshare(ticker: str, freq: str, curr_date: str) -> str:
     market_symbol = to_ak_symbol_with_market(ticker)
     try:
         df = ak.stock_balance_sheet_by_report_em(symbol=market_symbol)
@@ -53,12 +56,12 @@ def get_balance_sheet_akshare(ticker: str, curr_date: str) -> str:
         return f"## Balance sheet for {ticker}\n\n_Source unavailable: {e}_"
     period_col = next((c for c in df.columns if "报告" in c or "REPORT" in c.upper()), None)
     if period_col:
-        df = _select_periods(df, period_col)
-    return format_df_as_md(df, f"Balance sheet for {ticker} (as of {curr_date})", max_rows=20)
+        df = _select_periods(df, period_col, freq=freq)
+    return format_df_as_md(df, f"Balance sheet for {ticker} (freq={freq}, as of {curr_date})", max_rows=20)
 
 
 @ak_retry()
-def get_cashflow_akshare(ticker: str, curr_date: str) -> str:
+def get_cashflow_akshare(ticker: str, freq: str, curr_date: str) -> str:
     market_symbol = to_ak_symbol_with_market(ticker)
     try:
         df = ak.stock_cash_flow_sheet_by_report_em(symbol=market_symbol)
@@ -67,12 +70,12 @@ def get_cashflow_akshare(ticker: str, curr_date: str) -> str:
         return f"## Cash flow for {ticker}\n\n_Source unavailable: {e}_"
     period_col = next((c for c in df.columns if "报告" in c or "REPORT" in c.upper()), None)
     if period_col:
-        df = _select_periods(df, period_col)
-    return format_df_as_md(df, f"Cash flow for {ticker} (as of {curr_date})", max_rows=20)
+        df = _select_periods(df, period_col, freq=freq)
+    return format_df_as_md(df, f"Cash flow for {ticker} (freq={freq}, as of {curr_date})", max_rows=20)
 
 
 @ak_retry()
-def get_income_statement_akshare(ticker: str, curr_date: str) -> str:
+def get_income_statement_akshare(ticker: str, freq: str, curr_date: str) -> str:
     market_symbol = to_ak_symbol_with_market(ticker)
     try:
         df = ak.stock_profit_sheet_by_report_em(symbol=market_symbol)
@@ -81,5 +84,5 @@ def get_income_statement_akshare(ticker: str, curr_date: str) -> str:
         return f"## Income statement for {ticker}\n\n_Source unavailable: {e}_"
     period_col = next((c for c in df.columns if "报告" in c or "REPORT" in c.upper()), None)
     if period_col:
-        df = _select_periods(df, period_col)
-    return format_df_as_md(df, f"Income statement for {ticker} (as of {curr_date})", max_rows=20)
+        df = _select_periods(df, period_col, freq=freq)
+    return format_df_as_md(df, f"Income statement for {ticker} (freq={freq}, as of {curr_date})", max_rows=20)
