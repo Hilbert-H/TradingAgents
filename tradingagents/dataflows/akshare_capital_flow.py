@@ -59,8 +59,22 @@ def get_lhb_institutional_akshare(ticker: str, curr_date: str, look_back_days: i
     return format_df_as_md(df, f"Institutional LHB for {ticker} (last {look_back_days}d)", max_rows=20)
 
 
-def get_north_capital_individual_akshare(*_a, **_k):
-    raise NotImplementedError("Task 20")
+@ak_retry()
+def get_north_capital_individual_akshare(ticker: str, curr_date: str, look_back_days: int = 10) -> str:
+    """Northbound (Stock Connect) holding changes for a ticker."""
+    market_symbol = to_ak_symbol_with_market(ticker)
+    try:
+        df = ak.stock_hsgt_individual_em(stock=market_symbol)
+    except Exception as e:
+        logger.warning("stock_hsgt_individual_em failed for %s: %s", market_symbol, e)
+        return f"## Northbound holdings for {ticker}\n\n_Source unavailable: {e}_"
+    if df is not None and not df.empty:
+        date_col = next((c for c in df.columns if "日期" in c), None)
+        if date_col:
+            df["_dt"] = pd.to_datetime(df[date_col], errors="coerce")
+            start, end = _date_range(curr_date, look_back_days)
+            df = df[(df["_dt"] >= pd.Timestamp(start)) & (df["_dt"] <= pd.Timestamp(end))].drop(columns=["_dt"])
+    return format_df_as_md(df, f"Northbound holdings for {ticker} (last {look_back_days}d)", max_rows=20)
 
 
 def get_north_capital_overall_akshare(*_a, **_k):
