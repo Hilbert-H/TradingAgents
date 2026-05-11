@@ -181,3 +181,12 @@ def test_get_north_capital_individual_akshare_returns_markdown():
     out = get_north_capital_individual_akshare(TEST_TICKER_SH, TEST_DATE, look_back_days=10)
     assert isinstance(out, str)
     assert "##" in out
+
+
+from tradingagents.dataflows.akshare_capital_flow import get_north_capital_overall_akshare
+
+
+def test_get_north_capital_overall_akshare_returns_markdown():
+    out = get_north_capital_overall_akshare(TEST_DATE, look_back_days=10)
+    assert isinstance(out, str)
+    assert "##" in out

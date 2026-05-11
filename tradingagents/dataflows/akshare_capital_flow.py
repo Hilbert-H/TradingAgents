@@ -77,8 +77,21 @@ def get_north_capital_individual_akshare(ticker: str, curr_date: str, look_back_
     return format_df_as_md(df, f"Northbound holdings for {ticker} (last {look_back_days}d)", max_rows=20)
 
 
-def get_north_capital_overall_akshare(*_a, **_k):
-    raise NotImplementedError("Task 21")
+@ak_retry()
+def get_north_capital_overall_akshare(curr_date: str, look_back_days: int = 10) -> str:
+    """Daily net inflow of northbound capital — market-wide mood proxy."""
+    try:
+        df = ak.stock_hsgt_north_net_flow_in_em(symbol="北上")
+    except Exception as e:
+        logger.warning("stock_hsgt_north_net_flow_in_em failed: %s", e)
+        return f"## Northbound overall flow\n\n_Source unavailable: {e}_"
+    if df is not None and not df.empty:
+        date_col = next((c for c in df.columns if "日期" in c), None)
+        if date_col:
+            df["_dt"] = pd.to_datetime(df[date_col], errors="coerce")
+            start, end = _date_range(curr_date, look_back_days)
+            df = df[(df["_dt"] >= pd.Timestamp(start)) & (df["_dt"] <= pd.Timestamp(end))].drop(columns=["_dt"])
+    return format_df_as_md(df, f"Northbound net flow (last {look_back_days}d)", max_rows=look_back_days)
 
 
 def get_margin_trading_akshare(*_a, **_k):
