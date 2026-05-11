@@ -1,3 +1,5 @@
+import os
+
 import pytest
 import pandas as pd
 from tradingagents.dataflows.akshare_common import (
@@ -84,6 +86,27 @@ def test_ak_retry_does_not_retry_not_applicable():
     with pytest.raises(NotApplicableError):
         not_applicable()
     assert calls["n"] == 1   # not retried
+
+
+def test_ak_retry_bypasses_proxy_env_during_call():
+    saved_https = os.environ.get("HTTPS_PROXY")
+    os.environ["HTTPS_PROXY"] = "http://test-proxy.local:9999"
+    seen_during_call = {}
+
+    @ak_retry(max_attempts=1, base_delay=0.01)
+    def probe():
+        seen_during_call["HTTPS_PROXY"] = os.environ.get("HTTPS_PROXY")
+        return "ok"
+
+    try:
+        assert probe() == "ok"
+        assert seen_during_call["HTTPS_PROXY"] is None, "proxy env var was not cleared inside the call"
+        assert os.environ.get("HTTPS_PROXY") == "http://test-proxy.local:9999", "proxy env var was not restored"
+    finally:
+        if saved_https is None:
+            os.environ.pop("HTTPS_PROXY", None)
+        else:
+            os.environ["HTTPS_PROXY"] = saved_https
 
 
 def test_format_df_as_md_empty():

@@ -1,13 +1,38 @@
 """Shared helpers for the akshare vendor implementations."""
 
 import logging
+import os
 import time
+from contextlib import contextmanager
 from functools import wraps
 from typing import Optional
 
 import pandas as pd
 
 logger = logging.getLogger(__name__)
+
+_PROXY_ENV_KEYS = (
+    "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY",
+    "http_proxy", "https_proxy", "all_proxy",
+)
+
+
+@contextmanager
+def _no_proxy_env():
+    """Temporarily clear HTTP(S) proxy env vars.
+
+    Akshare's data sources are Chinese-domain endpoints (eastmoney.com,
+    sina.com.cn, ...) that are reachable directly from anywhere. Cross-border
+    proxies (Clash etc.) tend to fail intermittently for these hosts, so we
+    bypass them for the duration of akshare calls.
+    """
+    saved = {k: os.environ.pop(k, None) for k in _PROXY_ENV_KEYS}
+    try:
+        yield
+    finally:
+        for k, v in saved.items():
+            if v is not None:
+                os.environ[k] = v
 
 
 class NotApplicableError(Exception):
@@ -70,7 +95,8 @@ def ak_retry(max_attempts: int = 3, base_delay: float = 1.0):
             last_exc = None
             for attempt in range(max_attempts):
                 try:
-                    return fn(*args, **kwargs)
+                    with _no_proxy_env():
+                        return fn(*args, **kwargs)
                 except NotApplicableError:
                     raise
                 except Exception as e:
