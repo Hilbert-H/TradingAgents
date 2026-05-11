@@ -90,3 +90,12 @@ def test_get_announcements_akshare_raises_for_non_a_share():
     from tradingagents.dataflows.akshare_common import NotApplicableError
     with pytest.raises(NotApplicableError):
         get_announcements_akshare("NVDA", "2026-04-01", TEST_DATE)
+
+
+from tradingagents.dataflows.akshare_sentiment import get_stock_hot_rank_akshare
+
+
+def test_get_stock_hot_rank_akshare_returns_rank_info():
+    out = get_stock_hot_rank_akshare(TEST_TICKER_SH, TEST_DATE)
+    assert isinstance(out, str)
+    assert "##" in out

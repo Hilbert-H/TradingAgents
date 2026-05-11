@@ -1,13 +1,48 @@
-"""Akshare implementations for the sentiment data category. Phase B fills in bodies."""
+"""Akshare implementations for sentiment proxies (A-share)."""
+
+import logging
+import akshare as ak
+import pandas as pd
+
+from .akshare_common import ak_retry, format_df_as_md, to_ak_symbol
+
+logger = logging.getLogger(__name__)
 
 
-def get_stock_hot_rank_akshare(*_a, **_k):
-    raise NotImplementedError("akshare_sentiment.get_stock_hot_rank_akshare — Phase B Task 11")
+@ak_retry()
+def get_stock_hot_rank_akshare(ticker: str, curr_date: str) -> str:
+    """Combined east-money + 同花顺 attention rank for an A-share."""
+    symbol = to_ak_symbol(ticker)
+    sections = []
+
+    try:
+        em = ak.stock_hot_rank_em()       # full board snapshot
+        if em is not None and not em.empty:
+            code_col = next((c for c in em.columns if "代码" in c), None)
+            if code_col:
+                em = em[em[code_col].astype(str).str.zfill(6) == symbol]
+        sections.append(format_df_as_md(em, "East-Money Hot Rank", max_rows=10))
+    except Exception as e:
+        logger.warning("stock_hot_rank_em failed: %s", e)
+        sections.append("## East-Money Hot Rank\n\n_Source unavailable._")
+
+    try:
+        wc = ak.stock_hot_rank_wc()       # 同花顺
+        if wc is not None and not wc.empty:
+            code_col = next((c for c in wc.columns if "代码" in c), None)
+            if code_col:
+                wc = wc[wc[code_col].astype(str).str.zfill(6) == symbol]
+        sections.append(format_df_as_md(wc, "Tonghuashun Hot Rank", max_rows=10))
+    except Exception as e:
+        logger.warning("stock_hot_rank_wc failed: %s", e)
+        sections.append("## Tonghuashun Hot Rank\n\n_Source unavailable._")
+
+    return f"# Attention rank for {ticker} (as of {curr_date})\n\n" + "\n\n".join(sections)
 
 
 def get_shareholder_count_akshare(*_a, **_k):
-    raise NotImplementedError("akshare_sentiment.get_shareholder_count_akshare — Phase B Task 12")
+    raise NotImplementedError("akshare_sentiment.get_shareholder_count_akshare — Task 12")
 
 
 def get_research_reports_akshare(*_a, **_k):
-    raise NotImplementedError("akshare_sentiment.get_research_reports_akshare — Phase B Task 13")
+    raise NotImplementedError("akshare_sentiment.get_research_reports_akshare — Task 13")
