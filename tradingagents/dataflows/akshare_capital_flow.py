@@ -137,5 +137,7 @@ def get_fund_flow_akshare(ticker: str, curr_date: str) -> str:
     except Exception as e:
         logger.warning("stock_individual_fund_flow failed for %s: %s", symbol, e)
         return f"## Smart-money flow for {ticker}\n\n_Source unavailable: {e}_"
-    # Keep just the rows around curr_date (typically last ~30 days)
+    # akshare returns ascending order (oldest first); take tail to get the most-recent rows
+    if df is not None and not df.empty:
+        df = df.tail(10).iloc[::-1].reset_index(drop=True)
     return format_df_as_md(df, f"Smart-money flow for {ticker} (as of {curr_date})", max_rows=10)
