@@ -33,9 +33,15 @@ def create_portfolio_manager(llm):
         trader_plan = state["trader_investment_plan"]
 
         past_context = state.get("past_context", "")
+        capital_flow_report = state.get("capital_flow_report", "")
         lessons_line = (
             f"- Lessons from prior decisions and outcomes:\n{past_context}\n"
             if past_context
+            else ""
+        )
+        capital_flow_line = (
+            f"- Capital flow report (A-share only, \"N/A\" otherwise): {capital_flow_report}\n"
+            if capital_flow_report
             else ""
         )
 
@@ -55,7 +61,9 @@ def create_portfolio_manager(llm):
 **Context:**
 - Research Manager's investment plan: **{research_plan}**
 - Trader's transaction proposal: **{trader_plan}**
-{lessons_line}
+{capital_flow_line}{lessons_line}
+For A-share tickers, the capital_flow_report is a critical short-term signal — weight it heavily when the holding horizon is short. For non-A-share tickers it will be "N/A: ..."; ignore it.
+
 **Risk Analysts Debate History:**
 {history}
 

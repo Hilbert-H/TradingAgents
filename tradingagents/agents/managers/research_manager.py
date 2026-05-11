@@ -16,8 +16,18 @@ def create_research_manager(llm):
     def research_manager_node(state) -> dict:
         instrument_context = build_instrument_context(state["company_of_interest"])
         history = state["investment_debate_state"].get("history", "")
+        capital_flow_report = state.get("capital_flow_report", "")
 
         investment_debate_state = state["investment_debate_state"]
+
+        capital_flow_section = (
+            f"\n**Capital Flow Report (A-share only, \"N/A\" otherwise):** {capital_flow_report}\n"
+            "For A-share tickers, the capital_flow_report is a critical short-term signal — "
+            "weight it heavily when the holding horizon is short. For non-A-share tickers it will be "
+            "\"N/A: ...\"; ignore it.\n"
+            if capital_flow_report
+            else ""
+        )
 
         prompt = f"""As the Research Manager and debate facilitator, your role is to critically evaluate this round of debate and deliver a clear, actionable investment plan for the trader.
 
@@ -33,7 +43,7 @@ def create_research_manager(llm):
 - **Sell**: Strong conviction in the bear thesis; recommend exiting or avoiding the position
 
 Commit to a clear stance whenever the debate's strongest arguments warrant one; reserve Hold for situations where the evidence on both sides is genuinely balanced.
-
+{capital_flow_section}
 ---
 
 **Debate History:**

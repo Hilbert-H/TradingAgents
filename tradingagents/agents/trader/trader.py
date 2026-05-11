@@ -21,6 +21,16 @@ def create_trader(llm):
         company_name = state["company_of_interest"]
         instrument_context = build_instrument_context(company_name)
         investment_plan = state["investment_plan"]
+        capital_flow_report = state.get("capital_flow_report", "")
+
+        capital_flow_line = (
+            f"\nCapital flow report (A-share only, \"N/A\" otherwise): {capital_flow_report}\n"
+            "For A-share tickers, the capital_flow_report is a critical short-term signal — "
+            "weight it heavily when the holding horizon is short. For non-A-share tickers it will be "
+            "\"N/A: ...\"; ignore it.\n"
+            if capital_flow_report
+            else ""
+        )
 
         messages = [
             {
@@ -39,6 +49,7 @@ def create_trader(llm):
                     f"insights from current technical market trends, macroeconomic indicators, and "
                     f"social media sentiment. Use this plan as a foundation for evaluating your next "
                     f"trading decision.\n\nProposed Investment Plan: {investment_plan}\n\n"
+                    f"{capital_flow_line}"
                     f"Leverage these insights to make an informed and strategic decision."
                 ),
             },
