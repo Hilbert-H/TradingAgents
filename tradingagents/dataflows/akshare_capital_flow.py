@@ -62,11 +62,11 @@ def get_lhb_institutional_akshare(ticker: str, curr_date: str, look_back_days: i
 @ak_retry()
 def get_north_capital_individual_akshare(ticker: str, curr_date: str, look_back_days: int = 10) -> str:
     """Northbound (Stock Connect) holding changes for a ticker."""
-    market_symbol = to_ak_symbol_with_market(ticker)
+    symbol = to_ak_symbol(ticker)  # akshare expects unprefixed 6-digit code, e.g. "600487"
     try:
-        df = ak.stock_hsgt_individual_em(stock=market_symbol)
+        df = ak.stock_hsgt_individual_em(symbol=symbol)
     except Exception as e:
-        logger.warning("stock_hsgt_individual_em failed for %s: %s", market_symbol, e)
+        logger.warning("stock_hsgt_individual_em failed for %s: %s", symbol, e)
         return f"## Northbound holdings for {ticker}\n\n_Source unavailable: {e}_"
     if df is not None and not df.empty:
         date_col = next((c for c in df.columns if "日期" in c), None)
