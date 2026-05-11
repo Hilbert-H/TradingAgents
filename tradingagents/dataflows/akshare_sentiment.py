@@ -4,15 +4,16 @@ import logging
 import akshare as ak
 import pandas as pd
 
-from .akshare_common import ak_retry, format_df_as_md, to_ak_symbol
+from .akshare_common import ak_retry, format_df_as_md, to_ak_symbol, to_ak_symbol_with_market
 
 logger = logging.getLogger(__name__)
 
 
 @ak_retry()
 def get_stock_hot_rank_akshare(ticker: str, curr_date: str) -> str:
-    """Combined east-money + 同花顺 attention rank for an A-share."""
+    """Combined east-money attention rank for an A-share (global snapshot + per-stock history)."""
     symbol = to_ak_symbol(ticker)
+    market_symbol = to_ak_symbol_with_market(ticker)  # e.g. "SH600487"
     sections = []
 
     try:
@@ -21,21 +22,18 @@ def get_stock_hot_rank_akshare(ticker: str, curr_date: str) -> str:
             code_col = next((c for c in em.columns if "代码" in c), None)
             if code_col:
                 em = em[em[code_col].astype(str).str.zfill(6) == symbol]
-        sections.append(format_df_as_md(em, "East-Money Hot Rank", max_rows=10))
+        sections.append(format_df_as_md(em, "East-Money Hot Rank (snapshot)", max_rows=10))
     except Exception as e:
         logger.warning("stock_hot_rank_em failed: %s", e)
-        sections.append("## East-Money Hot Rank\n\n_Source unavailable._")
+        sections.append("## East-Money Hot Rank (snapshot)\n\n_Source unavailable._")
 
     try:
-        wc = ak.stock_hot_rank_wc()       # 同花顺
-        if wc is not None and not wc.empty:
-            code_col = next((c for c in wc.columns if "代码" in c), None)
-            if code_col:
-                wc = wc[wc[code_col].astype(str).str.zfill(6) == symbol]
-        sections.append(format_df_as_md(wc, "Tonghuashun Hot Rank", max_rows=10))
+        # stock_hot_rank_wc (同花顺) was removed; use stock_hot_rank_detail_em for per-stock history
+        detail = ak.stock_hot_rank_detail_em(symbol=market_symbol)
+        sections.append(format_df_as_md(detail, "East-Money Hot Rank (history)", max_rows=20))
     except Exception as e:
-        logger.warning("stock_hot_rank_wc failed: %s", e)
-        sections.append("## Tonghuashun Hot Rank\n\n_Source unavailable._")
+        logger.warning("stock_hot_rank_detail_em failed for %s: %s", market_symbol, e)
+        sections.append("## East-Money Hot Rank (history)\n\n_Source unavailable._")
 
     return f"# Attention rank for {ticker} (as of {curr_date})\n\n" + "\n\n".join(sections)
 
