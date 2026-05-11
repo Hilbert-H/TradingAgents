@@ -20,25 +20,27 @@ def _date_range(curr_date: str, look_back_days: int):
 
 @ak_retry()
 def get_lhb_detail_akshare(ticker: str, curr_date: str, look_back_days: int = 5) -> str:
-    """Dragon-Tiger seat detail for a single ticker over a recent window."""
+    """Dragon-Tiger seat detail for a single ticker over a recent window (both buy + sell sides)."""
     symbol = to_ak_symbol(ticker)
     start, end = _date_range(curr_date, look_back_days)
     frames = []
     cursor = start
     while cursor <= end:
-        try:
-            daily = ak.stock_lhb_stock_detail_em(symbol=symbol, date=cursor.strftime("%Y%m%d"))
-            if daily is not None and not daily.empty:
-                daily = daily.assign(_dt=cursor.strftime("%Y-%m-%d"))
-                frames.append(daily)
-        except Exception as e:
-            logger.debug("no LHB data for %s on %s: %s", symbol, cursor, e)
+        date_str = cursor.strftime("%Y%m%d")
+        for flag in ("买入", "卖出"):
+            try:
+                daily = ak.stock_lhb_stock_detail_em(symbol=symbol, date=date_str, flag=flag)
+                if daily is not None and not daily.empty:
+                    daily = daily.assign(_dt=cursor.strftime("%Y-%m-%d"), _side=flag)
+                    frames.append(daily)
+            except Exception as e:
+                logger.debug("no LHB %s data for %s on %s: %s", flag, symbol, cursor, e)
         cursor += timedelta(days=1)
 
     if not frames:
         return f"## Dragon-Tiger seats for {ticker} (last {look_back_days}d)\n\n_No 龙虎榜 hits._"
     combined = pd.concat(frames, ignore_index=True)
-    return format_df_as_md(combined, f"Dragon-Tiger seats for {ticker} (last {look_back_days}d)", max_rows=30)
+    return format_df_as_md(combined, f"Dragon-Tiger seats for {ticker} (last {look_back_days}d)", max_rows=40)
 
 
 @ak_retry()
