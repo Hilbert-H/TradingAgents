@@ -145,3 +145,12 @@ def test_get_cashflow_akshare_returns_table():
     out = get_cashflow_akshare(TEST_TICKER_SH, TEST_DATE)
     assert isinstance(out, str)
     assert "##" in out
+
+
+from tradingagents.dataflows.akshare_fundamentals import get_income_statement_akshare
+
+
+def test_get_income_statement_akshare_returns_table():
+    out = get_income_statement_akshare(TEST_TICKER_SH, TEST_DATE)
+    assert isinstance(out, str)
+    assert "##" in out
