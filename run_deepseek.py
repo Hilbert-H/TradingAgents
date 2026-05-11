@@ -10,12 +10,20 @@ Capital Flow Analyst. The analyst auto-skips for non-A-share tickers.
 """
 
 import os
+import logging
 from dotenv import load_dotenv
 from tradingagents.graph.trading_graph import TradingAgentsGraph
 from tradingagents.default_config import DEFAULT_CONFIG
 
 # .env loaded from the project root (or the current working directory)
 load_dotenv()
+
+logging.basicConfig(
+    level=logging.WARNING,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
+# Surface the dataflow router's vendor-routing INFO logs (akshare detection)
+logging.getLogger("tradingagents.dataflows").setLevel(logging.INFO)
 
 # Configure DeepSeek + A-share-friendly output
 config = DEFAULT_CONFIG.copy()
