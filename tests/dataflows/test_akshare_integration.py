@@ -57,3 +57,12 @@ def test_get_insider_transactions_akshare_returns_markdown():
     assert "##" in out
     # Either there's recent insider activity (table with rows) or a "No data" note
     assert "600487" in out or "No data" in out
+
+
+from tradingagents.dataflows.akshare_news import get_news_akshare
+
+
+def test_get_news_akshare_returns_articles():
+    out = get_news_akshare(TEST_TICKER_SH, "2026-04-15", TEST_DATE)
+    assert isinstance(out, str)
+    assert "##" in out
