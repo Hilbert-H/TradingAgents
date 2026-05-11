@@ -36,3 +36,13 @@ def test_get_stock_akshare_returns_markdown_with_ohlcv():
 def test_get_stock_akshare_raises_for_non_a_share():
     with pytest.raises(NotApplicableError):
         get_stock_akshare("NVDA", "2026-04-01", TEST_DATE)
+
+
+from tradingagents.dataflows.akshare_market import get_indicator_akshare
+
+
+def test_get_indicator_akshare_returns_indicator_values():
+    out = get_indicator_akshare(TEST_TICKER_SH, "close_50_sma", "2026-05-08", 30)
+    assert isinstance(out, str)
+    assert "close_50_sma" in out or "50 SMA" in out
+    assert "2026-" in out
