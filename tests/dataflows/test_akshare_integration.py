@@ -117,3 +117,13 @@ def test_get_research_reports_akshare_returns_recent():
     out = get_research_reports_akshare(TEST_TICKER_SH, "2026-01-01", TEST_DATE)
     assert isinstance(out, str)
     assert "##" in out
+
+
+from tradingagents.dataflows.akshare_fundamentals import get_fundamentals_akshare
+
+
+def test_get_fundamentals_akshare_returns_summary():
+    out = get_fundamentals_akshare(TEST_TICKER_SH, TEST_DATE)
+    assert isinstance(out, str)
+    assert "##" in out
+    assert "600487" in out or "亨通" in out
