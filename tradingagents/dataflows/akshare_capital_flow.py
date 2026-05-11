@@ -94,8 +94,33 @@ def get_north_capital_overall_akshare(curr_date: str, look_back_days: int = 10) 
     return format_df_as_md(df, f"Northbound net flow (last {look_back_days}d)", max_rows=look_back_days)
 
 
-def get_margin_trading_akshare(*_a, **_k):
-    raise NotImplementedError("Task 22")
+@ak_retry()
+def get_margin_trading_akshare(ticker: str, curr_date: str, look_back_days: int = 10) -> str:
+    """Per-ticker margin (融资) + securities-lending (融券) balances over a window."""
+    symbol = to_ak_symbol(ticker)
+    market_symbol = to_ak_symbol_with_market(ticker)
+    start, end = _date_range(curr_date, look_back_days)
+    # Both SSE and SZSE endpoints accept a single date and return all stocks;
+    # walk the window, fetch each trading day, filter by symbol.
+    fetch_fn = ak.stock_margin_detail_sse if market_symbol.startswith("SH") else ak.stock_margin_detail_szse
+    frames = []
+    cursor = start
+    while cursor <= end:
+        try:
+            daily = fetch_fn(date=cursor.strftime("%Y%m%d"))
+            if daily is not None and not daily.empty:
+                code_col = next((c for c in daily.columns if "代码" in c), None)
+                if code_col:
+                    daily = daily[daily[code_col].astype(str).str.zfill(6) == symbol]
+                if not daily.empty:
+                    frames.append(daily)
+        except Exception as e:
+            logger.debug("margin fetch failed for %s on %s: %s", symbol, cursor, e)
+        cursor += timedelta(days=1)
+    if not frames:
+        return f"## Margin trading for {ticker} (last {look_back_days}d)\n\n_No data available._"
+    df = pd.concat(frames, ignore_index=True)
+    return format_df_as_md(df, f"Margin trading for {ticker} (last {look_back_days}d)", max_rows=look_back_days)
 
 
 def get_fund_flow_akshare(*_a, **_k):
