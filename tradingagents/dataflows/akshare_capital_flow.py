@@ -41,8 +41,22 @@ def get_lhb_detail_akshare(ticker: str, curr_date: str, look_back_days: int = 5)
     return format_df_as_md(combined, f"Dragon-Tiger seats for {ticker} (last {look_back_days}d)", max_rows=30)
 
 
-def get_lhb_institutional_akshare(*_a, **_k):
-    raise NotImplementedError("Task 19")
+@ak_retry()
+def get_lhb_institutional_akshare(ticker: str, curr_date: str, look_back_days: int = 10) -> str:
+    """Institutional-seat-only Dragon-Tiger flow for a ticker over a recent window."""
+    symbol = to_ak_symbol(ticker)
+    start, end = _date_range(curr_date, look_back_days)
+    try:
+        df = ak.stock_lhb_jgmmtj_em(start_date=start.strftime("%Y%m%d"),
+                                     end_date=end.strftime("%Y%m%d"))
+    except Exception as e:
+        logger.warning("stock_lhb_jgmmtj_em failed: %s", e)
+        return f"## Institutional LHB for {ticker}\n\n_Source unavailable: {e}_"
+    if df is not None and not df.empty:
+        code_col = next((c for c in df.columns if "代码" in c), None)
+        if code_col:
+            df = df[df[code_col].astype(str).str.zfill(6) == symbol]
+    return format_df_as_md(df, f"Institutional LHB for {ticker} (last {look_back_days}d)", max_rows=20)
 
 
 def get_north_capital_individual_akshare(*_a, **_k):

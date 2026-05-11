@@ -163,3 +163,12 @@ def test_get_lhb_detail_akshare_returns_markdown():
     out = get_lhb_detail_akshare(TEST_TICKER_SH, TEST_DATE, look_back_days=10)
     assert isinstance(out, str)
     assert "##" in out
+
+
+from tradingagents.dataflows.akshare_capital_flow import get_lhb_institutional_akshare
+
+
+def test_get_lhb_institutional_akshare_returns_markdown():
+    out = get_lhb_institutional_akshare(TEST_TICKER_SH, TEST_DATE, look_back_days=10)
+    assert isinstance(out, str)
+    assert "##" in out
