@@ -36,8 +36,23 @@ def get_news_akshare(ticker: str, start_date: str, end_date: str) -> str:
     return format_df_as_md(df, f"News for {ticker} {start_date} → {end_date}", max_rows=20)
 
 
-def get_global_news_akshare(*_a, **_k):
-    raise NotImplementedError("akshare_news.get_global_news_akshare — Task 9")
+@ak_retry()
+def get_global_news_akshare(curr_date: str, look_back_days: int = 7, limit: int = 30) -> str:
+    """Macro/global financial news from akshare's east-money aggregator."""
+    df = ak.stock_info_global_em()
+    if df is None or df.empty:
+        return f"## Global news as of {curr_date}\n\n_No data._"
+
+    # Filter to recent window if a time column exists
+    time_col = next((c for c in df.columns if "时间" in c), None)
+    if time_col:
+        df["_dt"] = pd.to_datetime(df[time_col], errors="coerce")
+        end = pd.to_datetime(curr_date) + pd.Timedelta(days=1)
+        start = end - pd.Timedelta(days=look_back_days + 1)
+        df = df[(df["_dt"] >= start) & (df["_dt"] < end)].drop(columns=["_dt"])
+
+    df = df.head(limit)
+    return format_df_as_md(df, f"Global news as of {curr_date} (last {look_back_days}d)", max_rows=limit)
 
 
 def get_announcements_akshare(*_a, **_k):

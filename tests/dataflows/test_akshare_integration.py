@@ -66,3 +66,12 @@ def test_get_news_akshare_returns_articles():
     out = get_news_akshare(TEST_TICKER_SH, "2026-04-15", TEST_DATE)
     assert isinstance(out, str)
     assert "##" in out
+
+
+from tradingagents.dataflows.akshare_news import get_global_news_akshare
+
+
+def test_get_global_news_akshare_returns_articles():
+    out = get_global_news_akshare(TEST_DATE, look_back_days=2, limit=10)
+    assert isinstance(out, str)
+    assert "##" in out
