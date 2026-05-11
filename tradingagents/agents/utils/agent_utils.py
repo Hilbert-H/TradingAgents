@@ -22,6 +22,14 @@ from tradingagents.agents.utils.news_data_tools import (
     get_shareholder_count,
     get_research_reports,
 )
+from tradingagents.agents.utils.capital_flow_tools import (
+    get_lhb_detail,
+    get_lhb_institutional,
+    get_north_capital_individual,
+    get_north_capital_overall,
+    get_margin_trading,
+    get_fund_flow,
+)
 
 
 def get_language_instruction() -> str:
