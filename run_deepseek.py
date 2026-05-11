@@ -10,6 +10,17 @@ Capital Flow Analyst. The analyst auto-skips for non-A-share tickers.
 """
 
 import os
+
+# IMPORTANT: clear proxy env BEFORE importing any library that initializes
+# HTTP connection pools (akshare → requests → urllib3). The akshare/eastmoney
+# endpoints are Chinese-domain hosts reachable directly without a proxy; cross-
+# border proxies (Clash etc.) often cause SSL/connection failures with these
+# hosts. ak_retry also clears env at call time, but some libraries cache the
+# proxy state at import time, so we strip env first thing here.
+for _k in ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY",
+           "http_proxy", "https_proxy", "all_proxy"):
+    os.environ.pop(_k, None)
+
 import logging
 from dotenv import load_dotenv
 from tradingagents.graph.trading_graph import TradingAgentsGraph
