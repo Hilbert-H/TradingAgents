@@ -108,3 +108,12 @@ def test_get_shareholder_count_akshare_returns_history():
     out = get_shareholder_count_akshare(TEST_TICKER_SH, TEST_DATE)
     assert isinstance(out, str)
     assert "##" in out
+
+
+from tradingagents.dataflows.akshare_sentiment import get_research_reports_akshare
+
+
+def test_get_research_reports_akshare_returns_recent():
+    out = get_research_reports_akshare(TEST_TICKER_SH, "2026-01-01", TEST_DATE)
+    assert isinstance(out, str)
+    assert "##" in out

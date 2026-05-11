@@ -55,5 +55,24 @@ def get_shareholder_count_akshare(ticker: str, curr_date: str) -> str:
     return format_df_as_md(df, f"Shareholder count history for {ticker} (as of {curr_date})", max_rows=20)
 
 
-def get_research_reports_akshare(*_a, **_k):
-    raise NotImplementedError("akshare_sentiment.get_research_reports_akshare — Task 13")
+@ak_retry()
+def get_research_reports_akshare(ticker: str, start_date: str, end_date: str) -> str:
+    """Analyst research reports (target prices, ratings) filtered to a date window."""
+    symbol = to_ak_symbol(ticker)
+    try:
+        df = ak.stock_research_report_em(symbol=symbol)
+    except Exception as e:
+        logger.warning("stock_research_report_em failed for %s: %s", symbol, e)
+        return f"## Research reports for {ticker}\n\n_Source unavailable: {e}_"
+
+    if df is None or df.empty:
+        return f"## Research reports for {ticker} {start_date} → {end_date}\n\n_No reports._"
+
+    date_col = next((c for c in df.columns if "日期" in c or "date" in c.lower()), None)
+    if date_col:
+        df["_dt"] = pd.to_datetime(df[date_col], errors="coerce")
+        start = pd.to_datetime(start_date)
+        end = pd.to_datetime(end_date) + pd.Timedelta(days=1)
+        df = df[(df["_dt"] >= start) & (df["_dt"] < end)].drop(columns=["_dt"])
+
+    return format_df_as_md(df, f"Research reports for {ticker} {start_date} → {end_date}", max_rows=20)
