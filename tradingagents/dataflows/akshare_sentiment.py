@@ -40,8 +40,19 @@ def get_stock_hot_rank_akshare(ticker: str, curr_date: str) -> str:
     return f"# Attention rank for {ticker} (as of {curr_date})\n\n" + "\n\n".join(sections)
 
 
-def get_shareholder_count_akshare(*_a, **_k):
-    raise NotImplementedError("akshare_sentiment.get_shareholder_count_akshare — Task 12")
+@ak_retry()
+def get_shareholder_count_akshare(ticker: str, curr_date: str) -> str:
+    """Quarterly shareholder count history — chip-concentration proxy."""
+    symbol = to_ak_symbol(ticker)
+    try:
+        # stock_zh_a_gdhs_detail_em takes a 6-digit ticker code and returns
+        # per-stock quarterly shareholder history (stock_zh_a_gdhs takes a
+        # period-date string and returns the full market snapshot instead).
+        df = ak.stock_zh_a_gdhs_detail_em(symbol=symbol)
+    except Exception as e:
+        logger.warning("stock_zh_a_gdhs_detail_em failed for %s: %s", symbol, e)
+        return f"## Shareholder count for {ticker}\n\n_Source unavailable: {e}_"
+    return format_df_as_md(df, f"Shareholder count history for {ticker} (as of {curr_date})", max_rows=20)
 
 
 def get_research_reports_akshare(*_a, **_k):

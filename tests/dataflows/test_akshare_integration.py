@@ -99,3 +99,12 @@ def test_get_stock_hot_rank_akshare_returns_rank_info():
     out = get_stock_hot_rank_akshare(TEST_TICKER_SH, TEST_DATE)
     assert isinstance(out, str)
     assert "##" in out
+
+
+from tradingagents.dataflows.akshare_sentiment import get_shareholder_count_akshare
+
+
+def test_get_shareholder_count_akshare_returns_history():
+    out = get_shareholder_count_akshare(TEST_TICKER_SH, TEST_DATE)
+    assert isinstance(out, str)
+    assert "##" in out
