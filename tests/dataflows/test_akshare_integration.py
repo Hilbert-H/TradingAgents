@@ -199,3 +199,12 @@ def test_get_margin_trading_akshare_returns_markdown():
     out = get_margin_trading_akshare(TEST_TICKER_SH, TEST_DATE, look_back_days=10)
     assert isinstance(out, str)
     assert "##" in out
+
+
+from tradingagents.dataflows.akshare_capital_flow import get_fund_flow_akshare
+
+
+def test_get_fund_flow_akshare_returns_markdown():
+    out = get_fund_flow_akshare(TEST_TICKER_SH, TEST_DATE)
+    assert isinstance(out, str)
+    assert "##" in out

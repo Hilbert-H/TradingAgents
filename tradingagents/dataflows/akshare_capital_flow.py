@@ -123,5 +123,16 @@ def get_margin_trading_akshare(ticker: str, curr_date: str, look_back_days: int 
     return format_df_as_md(df, f"Margin trading for {ticker} (last {look_back_days}d)", max_rows=look_back_days)
 
 
-def get_fund_flow_akshare(*_a, **_k):
-    raise NotImplementedError("Task 23")
+@ak_retry()
+def get_fund_flow_akshare(ticker: str, curr_date: str) -> str:
+    """Today's smart-money flow breakdown (super-large / large / medium / small)."""
+    symbol = to_ak_symbol(ticker)
+    market_symbol = to_ak_symbol_with_market(ticker)
+    market = "sh" if market_symbol.startswith("SH") else "sz"
+    try:
+        df = ak.stock_individual_fund_flow(stock=symbol, market=market)
+    except Exception as e:
+        logger.warning("stock_individual_fund_flow failed for %s: %s", symbol, e)
+        return f"## Smart-money flow for {ticker}\n\n_Source unavailable: {e}_"
+    # Keep just the rows around curr_date (typically last ~30 days)
+    return format_df_as_md(df, f"Smart-money flow for {ticker} (as of {curr_date})", max_rows=10)
