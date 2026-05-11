@@ -1,4 +1,5 @@
 from typing import Annotated
+import logging
 
 # Import from vendor-specific modules
 from .y_finance import (
@@ -23,9 +24,21 @@ from .alpha_vantage import (
     get_global_news as get_alpha_vantage_global_news,
 )
 from .alpha_vantage_common import AlphaVantageRateLimitError
+from .akshare_common import NotApplicableError
 
 # Configuration and routing logic
 from .config import get_config
+
+logger = logging.getLogger(__name__)
+
+A_SHARE_SUFFIXES = (".SS", ".SZ")
+
+
+def _detect_market(ticker) -> str:
+    """Return 'a_share' if ticker has Shanghai/Shenzhen suffix, else 'global'."""
+    if not ticker or not isinstance(ticker, str):
+        return "global"
+    return "a_share" if ticker.upper().endswith(A_SHARE_SUFFIXES) else "global"
 
 # Tools organized by category
 TOOLS_CATEGORIES = {
@@ -132,31 +145,78 @@ def get_vendor(category: str, method: str = None) -> str:
     return config.get("data_vendors", {}).get(category, "default")
 
 def route_to_vendor(method: str, *args, **kwargs):
-    """Route method calls to appropriate vendor implementation with fallback support."""
-    category = get_category_for_method(method)
-    vendor_config = get_vendor(category, method)
-    primary_vendors = [v.strip() for v in vendor_config.split(',')]
+    """Route method calls to appropriate vendor with fallback support.
 
+    Resolution order:
+      1. If the first positional arg / `ticker` / `symbol` kwarg looks like
+         an A-share ticker (`.SS` / `.SZ` suffix), force akshare as the
+         primary vendor — unless the user has set a method-level
+         `tool_vendors` override, which always wins.
+      2. Otherwise, use the user-configured vendor for the category.
+      3. Build a fallback chain: primary + every other available vendor.
+      4. Walk the chain. Skip on AlphaVantageRateLimitError (existing
+         behaviour). Skip on NotApplicableError (new). Skip on any other
+         Exception with a warning log.
+      5. If chain exhausted and every failure was NotApplicableError ->
+         return an "N/A: ..." string.
+      6. If chain exhausted with at least one real error -> return a
+         "Data unavailable: ..." string.
+    """
     if method not in VENDOR_METHODS:
         raise ValueError(f"Method '{method}' not supported")
 
-    # Build fallback chain: primary vendors first, then remaining available vendors
-    all_available_vendors = list(VENDOR_METHODS[method].keys())
-    fallback_vendors = primary_vendors.copy()
-    for vendor in all_available_vendors:
+    category = get_category_for_method(method)
+    config = get_config()
+
+    # Determine ticker (used both for A-share routing and for the N/A message)
+    ticker = args[0] if args else (kwargs.get("ticker") or kwargs.get("symbol"))
+    market = _detect_market(ticker)
+
+    tool_override = config.get("tool_vendors", {}).get(method)
+    if tool_override:
+        primary_vendors = [tool_override]
+    elif market == "a_share":
+        primary_vendors = ["akshare"]
+        logger.info("Ticker %s detected as A-share, routing %s to akshare", ticker, method)
+    else:
+        vendor_config = config.get("data_vendors", {}).get(category, "default")
+        primary_vendors = [v.strip() for v in vendor_config.split(",")]
+
+    # Build fallback chain
+    all_available = list(VENDOR_METHODS[method].keys())
+    fallback_vendors = list(primary_vendors)
+    for vendor in all_available:
         if vendor not in fallback_vendors:
             fallback_vendors.append(vendor)
+
+    seen_only_not_applicable = True
+    last_error: Exception = None
 
     for vendor in fallback_vendors:
         if vendor not in VENDOR_METHODS[method]:
             continue
-
         vendor_impl = VENDOR_METHODS[method][vendor]
         impl_func = vendor_impl[0] if isinstance(vendor_impl, list) else vendor_impl
-
         try:
             return impl_func(*args, **kwargs)
-        except AlphaVantageRateLimitError:
-            continue  # Only rate limits trigger fallback
+        except AlphaVantageRateLimitError as e:
+            seen_only_not_applicable = False
+            last_error = e
+            continue
+        except NotApplicableError as e:
+            last_error = e
+            continue
+        except Exception as e:
+            seen_only_not_applicable = False
+            last_error = e
+            logger.warning("vendor %s failed for method %s: %s", vendor, method, e)
+            continue
 
-    raise RuntimeError(f"No available vendor for '{method}'")
+    # Chain exhausted
+    if seen_only_not_applicable:
+        return (
+            f"N/A: {method} is not supported for ticker {ticker!r}. "
+            f"(All available vendors raised NotApplicableError; "
+            f"this method typically requires an A-share ticker.)"
+        )
+    return f"Data unavailable: {method} failed across all vendors. Last error: {last_error}"
