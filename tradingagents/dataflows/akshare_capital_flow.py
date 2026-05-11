@@ -81,9 +81,10 @@ def get_north_capital_individual_akshare(ticker: str, curr_date: str, look_back_
 def get_north_capital_overall_akshare(curr_date: str, look_back_days: int = 10) -> str:
     """Daily net inflow of northbound capital — market-wide mood proxy."""
     try:
-        df = ak.stock_hsgt_north_net_flow_in_em(symbol="北上")
+        # stock_hsgt_north_net_flow_in_em was removed; use stock_hsgt_hist_em instead
+        df = ak.stock_hsgt_hist_em(symbol="北向资金")
     except Exception as e:
-        logger.warning("stock_hsgt_north_net_flow_in_em failed: %s", e)
+        logger.warning("stock_hsgt_hist_em failed: %s", e)
         return f"## Northbound overall flow\n\n_Source unavailable: {e}_"
     if df is not None and not df.empty:
         date_col = next((c for c in df.columns if "日期" in c), None)
