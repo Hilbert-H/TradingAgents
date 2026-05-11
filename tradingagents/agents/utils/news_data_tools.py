@@ -51,3 +51,56 @@ def get_insider_transactions(
         str: A report of insider transaction data
     """
     return route_to_vendor("get_insider_transactions", ticker)
+
+
+@tool
+def get_announcements(
+    ticker: Annotated[str, "Ticker symbol (e.g. 600487.SS)"],
+    start_date: Annotated[str, "Start date yyyy-mm-dd"],
+    end_date: Annotated[str, "End date yyyy-mm-dd"],
+) -> str:
+    """A-share legal-disclosure announcements (法定信披) for a ticker.
+
+    Returns a formatted markdown list. Only supports A-share tickers
+    (`.SS` / `.SZ`). Calling with a US ticker returns an N/A string.
+    """
+    return route_to_vendor("get_announcements", ticker, start_date, end_date)
+
+
+@tool
+def get_stock_hot_rank(
+    ticker: Annotated[str, "Ticker symbol (e.g. 600487.SS)"],
+    curr_date: Annotated[str, "Current date yyyy-mm-dd"],
+) -> str:
+    """Attention rank for an A-share ticker (East-Money + Tonghuashun).
+
+    Use this as a market-attention proxy for sentiment analysis on A-shares.
+    Non-A-share tickers return an N/A string.
+    """
+    return route_to_vendor("get_stock_hot_rank", ticker, curr_date)
+
+
+@tool
+def get_shareholder_count(
+    ticker: Annotated[str, "Ticker symbol (e.g. 600487.SS)"],
+    curr_date: Annotated[str, "Current date yyyy-mm-dd"],
+) -> str:
+    """Historical shareholder count for an A-share — chip-concentration proxy.
+
+    A falling count typically indicates institutional accumulation;
+    a rising count indicates retail dispersion. Non-A-share returns N/A.
+    """
+    return route_to_vendor("get_shareholder_count", ticker, curr_date)
+
+
+@tool
+def get_research_reports(
+    ticker: Annotated[str, "Ticker symbol (e.g. 600487.SS)"],
+    start_date: Annotated[str, "Start date yyyy-mm-dd"],
+    end_date: Annotated[str, "End date yyyy-mm-dd"],
+) -> str:
+    """Analyst research reports (target prices, ratings) for an A-share.
+
+    Use as auxiliary sentiment signal. Non-A-share returns N/A.
+    """
+    return route_to_vendor("get_research_reports", ticker, start_date, end_date)
