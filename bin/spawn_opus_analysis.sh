@@ -90,21 +90,68 @@ log_file="${LOG_DIR}/${basename_no_ext}.${timestamp}.log"
 prompt_file="${PROMPT_STAGING_DIR}/${basename_no_ext}.${timestamp}.prompt.md"
 
 # ---- ClashX Meta mixed-port 自动探测 ----
-# 与 quant-research-v2/bin/spawn-refactor.sh 同源逻辑：
-#   优先级 = 当前 shell 合法 http_proxy → ClashX Meta cache yaml → 兜底 7893
-detect_proxy_port() {
-  if [[ "${http_proxy:-}" =~ ^https?://127\.0\.0\.1:([0-9]+)$ ]]; then
-    echo "${BASH_REMATCH[1]}"; return
-  fi
-  for cache_yaml in "$HOME/Library/Caches/com.MetaCubeX.ClashX.meta/cacheConfigs/"*.yaml; do
-    [[ -f "$cache_yaml" ]] || continue
-    local port_value
-    port_value=$(awk '/^mixed-port:/{print $2; exit}' "$cache_yaml")
-    [[ -n "$port_value" ]] && { echo "$port_value"; return; }
-  done
-  echo "7893"
+# 历史教训：早期实现只读 ClashX cacheConfigs/*.yaml 里的 mixed-port，但
+#   1) cacheConfigs 目录里可能有多个 yaml，文件名 UUID 不带 mtime，glob 顺序不稳定，
+#      可能选中已 stale 的旧 yaml（实测：旧 yaml 写 7893，新 yaml 写 7894）；
+#   2) 调用方（run_batch.py worker）启动时 strip 了 http_proxy 环境变量，所以也读不到
+#      用户 shell 里实际生效的 7894。
+# 因此重写为「先收集候选，再 TCP 探活，选第一个能连上的」。
+port_is_alive() {
+  local port="$1"
+  # macOS nc 没有 -w 时直连阻塞；--zero -G 1 用 1s 超时
+  nc -z -G 1 127.0.0.1 "$port" >/dev/null 2>&1
 }
-proxy_port="$(detect_proxy_port)"
+
+# 收集所有候选端口（顺序 = 优先级），去重但保序
+collect_candidate_ports() {
+  local candidates=()
+  # 1) 当前 shell 的 http_proxy（如果合法）— 用户最权威的信息
+  if [[ "${http_proxy:-}" =~ ^https?://127\.0\.0\.1:([0-9]+)$ ]]; then
+    candidates+=("${BASH_REMATCH[1]}")
+  fi
+  if [[ "${HTTP_PROXY:-}" =~ ^https?://127\.0\.0\.1:([0-9]+)$ ]]; then
+    candidates+=("${BASH_REMATCH[1]}")
+  fi
+  # 2) 从 ps 抠出 ClashX 正在用的 yaml 路径，读那个 yaml 的 mixed-port
+  local active_yaml
+  active_yaml="$(ps -ef 2>/dev/null | grep -iE "clash" | grep -v grep \
+                 | grep -oE "/[^ ]+\.yaml" | head -1)"
+  if [[ -n "$active_yaml" && -f "$active_yaml" ]]; then
+    local p
+    p="$(awk '/^mixed-port:/{print $2; exit}' "$active_yaml")"
+    [[ -n "$p" ]] && candidates+=("$p")
+  fi
+  # 3) cacheConfigs 下按 mtime 倒序的所有 yaml — 兜底
+  if [[ -d "$HOME/Library/Caches/com.MetaCubeX.ClashX.meta/cacheConfigs" ]]; then
+    while IFS= read -r y; do
+      local p
+      p="$(awk '/^mixed-port:/{print $2; exit}' "$y")"
+      [[ -n "$p" ]] && candidates+=("$p")
+    done < <(ls -t "$HOME/Library/Caches/com.MetaCubeX.ClashX.meta/cacheConfigs/"*.yaml 2>/dev/null)
+  fi
+  # 4) Clash 常见默认端口
+  candidates+=(7890 7891 7893 7894 7897 7898 1087 8080)
+  # 去重保序
+  printf '%s\n' "${candidates[@]}" | awk '!seen[$0]++'
+}
+
+detect_proxy_port() {
+  local port
+  for port in $(collect_candidate_ports); do
+    if port_is_alive "$port"; then
+      echo "$port"
+      return 0
+    fi
+  done
+  # 没找到 — 让调用方决定怎么处理（这里返回非 0 让上层报错）
+  return 1
+}
+
+if ! proxy_port="$(detect_proxy_port)"; then
+  echo "❌ 未探测到任何可用的本地代理端口（7890-7898/1087/8080 全部 dead）" >&2
+  echo "   ClashX 是否运行？请用 \`netstat -an -p tcp | grep LISTEN\` 检查实际监听端口。" >&2
+  exit 1
+fi
 
 # ---- 渲染 prompt 到 prompt_file ----
 # sed 不适合大文件正文替换（特殊字符冲突），用 python3 做安全的字符串替换。
