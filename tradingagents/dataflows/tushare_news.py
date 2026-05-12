@@ -39,7 +39,7 @@ from typing import Optional
 
 import pandas as pd
 
-from .akshare_common import format_df_as_md, get_a_share_name
+from .akshare_common import NotApplicableError, format_df_as_md, get_a_share_name
 from .tushare_common import (
     get_pro_client, to_ts_code, tushare_retry,
 )
@@ -76,10 +76,29 @@ _NEWS_SOURCES = ("sina",)
 _FETCH_LOCK = threading.Lock()
 
 # 限流冷却:一次拉取失败后,多久之内不再瞬时重试。
-# 单位秒。pro.news 的硬限是 2 次/小时,所以失败后等 5 min 重试一次比较合理:
-#   - 短到 cache 真过期后还有机会自愈
-#   - 长到避免 8 worker 同时撞限流
-_FAILURE_COOLDOWN_SECS = 300
+# tushare 限流分多档(实测):
+#   - "X 次/分钟" → 短时抖动,60s 退避即可
+#   - "X 次/小时" → 30 min 退避到下个小时窗口
+#   - "X 次/天"   → 当天配额已罄,6h 退避(明天 0 点附近会刷新,但保守一点)
+# 默认 5 min 用于未识别的错误。
+_DEFAULT_COOLDOWN_SECS = 300
+_COOLDOWN_BY_UNIT = {
+    "分钟": 60,
+    "小时": 30 * 60,
+    "天":   6 * 3600,
+}
+
+
+def _cooldown_for_error(exc_msg: str) -> int:
+    """Match the rate-limit time unit in the error and pick a sensible cooldown.
+
+    Tushare's "频率超限" errors include a "(N 次/<unit>)" suffix; we key off
+    the unit so daily-quota exhaustion doesn't keep retrying every 5 min.
+    """
+    for unit, secs in _COOLDOWN_BY_UNIT.items():
+        if f"次/{unit}" in exc_msg:
+            return secs
+    return _DEFAULT_COOLDOWN_SECS
 
 
 def _fetch_news_one_source(src: str, start_dt: str, end_dt: str) -> "pd.DataFrame":
@@ -99,21 +118,30 @@ def _failure_marker_path(src: str) -> Path:
 
 
 def _in_cooldown(src: str) -> bool:
-    """True if a recent fetch failure flagged this src as on cooldown."""
+    """True if a recent fetch failure flagged this src as on cooldown.
+
+    The cooldown duration is stored as the marker file's content (seconds);
+    if the file exists but content is unreadable/legacy, we fall back to
+    ``_DEFAULT_COOLDOWN_SECS``.
+    """
     p = _failure_marker_path(src)
     if not p.exists():
         return False
-    return time.time() - p.stat().st_mtime < _FAILURE_COOLDOWN_SECS
+    try:
+        cooldown_secs = int(p.read_text().strip())
+    except Exception:
+        cooldown_secs = _DEFAULT_COOLDOWN_SECS
+    return time.time() - p.stat().st_mtime < cooldown_secs
 
 
-def _mark_failure(src: str) -> None:
-    """Touch the failure marker so subsequent workers/calls skip the fetch."""
+def _mark_failure(src: str, cooldown_secs: int) -> None:
+    """Write the chosen cooldown into the marker file (and touch its mtime)."""
     _NEWS_CACHE_DIR.mkdir(parents=True, exist_ok=True)
     p = _failure_marker_path(src)
     try:
-        p.touch()
+        p.write_text(str(cooldown_secs))
     except Exception as exc:
-        logger.debug("failed to touch failure marker %s: %s", p, exc)
+        logger.debug("failed to write failure marker %s: %s", p, exc)
 
 
 def _cache_path(src: str) -> Path:
@@ -227,11 +255,12 @@ def _aggregate_news_df() -> "pd.DataFrame":
                 if not df.empty:
                     frames.append(df)
             except Exception as exc:
+                cooldown = _cooldown_for_error(str(exc))
                 logger.warning(
                     "tushare news refetch failed (src=%s): %s — cooldown %ds, falling back to stale cache",
-                    src, exc, _FAILURE_COOLDOWN_SECS,
+                    src, exc, cooldown,
                 )
-                _mark_failure(src)
+                _mark_failure(src, cooldown)
                 stale = _read_cache_stale_ok(src)
                 if stale is not None and not stale.empty:
                     frames.append(stale)
@@ -283,8 +312,14 @@ def get_news_tushare(ticker: str, start_date: str, end_date: str) -> str:
     Aggregates from the configured sources (default: sina, 1500 rows/call),
     then filters by 6-digit code OR Chinese name in title/content.
 
-    The result is markdown for direct LLM consumption. Returns an explanatory
-    "no news" string if nothing matches or every source failed.
+    Failure-mode contract (so the routing layer can fall back cleanly):
+      - ``df.empty`` (rate-limit exhausted AND no stale cache) →
+        raise ``NotApplicableError`` so route_to_vendor cascades to akshare.
+      - ``df`` non-empty but no ticker matches → return a "no matched news"
+        markdown string. We do NOT raise here, because tushare is
+        authoritative on "nothing in the global feed mentions this ticker"
+        — akshare's per-stock endpoint isn't likely to do better, and the
+        LLM should see a clear "no signal" message.
     """
     ts_code = to_ts_code(ticker)
     name = get_a_share_name(ticker)
@@ -299,9 +334,10 @@ def get_news_tushare(ticker: str, start_date: str, end_date: str) -> str:
         raise
 
     if df.empty:
-        return (
-            f"## News for {ticker} {start_date} → {end_date}\n\n"
-            "_No tushare news data (all sources empty)._"
+        # No fresh data AND no stale cache → tushare path is dry.
+        # Raising NotApplicableError lets route_to_vendor try akshare next.
+        raise NotApplicableError(
+            f"tushare news cache empty (rate-limited, no stale data) for {ts_code}"
         )
 
     hit = _filter_news_by_ticker(df, ts_code, name, start_date, end_date)
