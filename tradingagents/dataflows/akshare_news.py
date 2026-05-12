@@ -1,6 +1,7 @@
 """Akshare implementations for news / announcements."""
 
 import logging
+import re
 import time
 from datetime import datetime
 
@@ -8,7 +9,7 @@ import akshare as ak
 import pandas as pd
 
 from .akshare_common import (
-    ak_retry, format_df_as_md, is_a_share,
+    ak_retry, format_df_as_md, get_a_share_name, is_a_share,
     to_ak_symbol, NotApplicableError,
 )
 
@@ -92,26 +93,119 @@ def _get_global_news_df_cached() -> "pd.DataFrame":
     return df
 
 
+def _filter_global_news_by_ticker(
+    df: "pd.DataFrame",
+    ticker: str,
+    name: str,
+    start_date: str,
+    end_date: str,
+) -> "pd.DataFrame":
+    """Pick rows from the cached global-news df whose title/content mention this ticker.
+
+    Two recall channels — either one matches:
+    1. 6-digit ticker code anywhere in the headline or body (e.g. "002155.SZ"
+       or just "002155"). Most precise, but cailianshe quick-notes often omit
+       the code.
+    2. Exact Chinese name match (e.g. "湖南黄金"). Higher recall but small
+       chance of false positives on short generic names — we accept that;
+       the LLM is robust to a few off-target items in a sentiment block.
+
+    ``start_date`` / ``end_date`` are inclusive of both endpoints (YYYY-MM-DD).
+    The cached frame already covers the last ~few hours/days depending on
+    each source's depth, so a wide window is fine.
+    """
+    if df is None or df.empty:
+        return df
+
+    code = re.sub(r"\.[A-Z]+$", "", ticker)  # 002155.SZ → 002155
+    # Build regex: code (word-boundary loose, since Chinese text has no \b)
+    # OR exact Chinese name (only if non-empty and not trivially short).
+    patterns = [re.escape(code)]
+    if name and len(name) >= 2:
+        patterns.append(re.escape(name))
+    pat = re.compile("|".join(patterns))
+
+    text = (df["title"].fillna("") + " " + df["content"].fillna("")).astype(str)
+    hit = df[text.str.contains(pat, na=False)].copy()
+
+    # Date window filter (publish_time is already datetime; ok if NaT)
+    start = pd.to_datetime(start_date)
+    end = pd.to_datetime(end_date) + pd.Timedelta(days=1)
+    in_window = hit["publish_time"].between(start, end, inclusive="left")
+    return hit[in_window | hit["publish_time"].isna()]
+
+
 @ak_retry()
 def get_news_akshare(ticker: str, start_date: str, end_date: str) -> str:
-    """Per-stock news for an A-share ticker, filtered to [start_date, end_date]."""
+    """Per-stock news for an A-share ticker, filtered to [start_date, end_date].
+
+    Two recall paths combined:
+
+    1. ``stock_news_em(symbol=...)`` — Eastmoney's per-stock news page.
+       Best per-ticker recall for major/mid-cap names.
+    2. ``_get_global_news_df_cached()`` filtered to rows that mention the
+       6-digit code or the Chinese name. Pulls in 财联社 / 同花顺 / 富途 /
+       新浪 quick-notes that Eastmoney's per-stock page often misses (cls
+       in particular reacts to intraday events 5-30 min faster).
+
+    Results are merged, deduped by headline, and sorted newest-first.
+    """
     symbol = to_ak_symbol(ticker)
-    df = ak.stock_news_em(symbol=symbol)
-    if df is None or df.empty:
-        return f"## News for {ticker} {start_date} → {end_date}\n\n_No news found._"
+    name = get_a_share_name(ticker)
 
-    # Akshare returns publish times as strings like '2026-05-07 09:15:00'
-    time_col = next((c for c in df.columns if "时间" in c or "publish" in c.lower()), None)
-    if time_col:
-        df["_dt"] = pd.to_datetime(df[time_col], errors="coerce")
+    # --- Path 1: Eastmoney per-stock news ---
+    em_rows: "pd.DataFrame" = pd.DataFrame()
+    try:
+        em = ak.stock_news_em(symbol=symbol)
+    except Exception as e:
+        logger.warning("stock_news_em failed for %s: %s", symbol, e)
+        em = None
+    if em is not None and not em.empty:
+        # Canonicalise column names so we can merge with global-news frame
+        title_col = next((c for c in em.columns if c in ("新闻标题", "标题", "title")), None)
+        body_col = next((c for c in em.columns if c in ("新闻内容", "内容", "摘要", "content")), None)
+        time_col = next((c for c in em.columns if "时间" in c or "publish" in c.lower()), None)
+        em_rows = pd.DataFrame()
+        em_rows["title"] = em[title_col].astype(str) if title_col else ""
+        em_rows["content"] = em[body_col].astype(str) if body_col else ""
+        em_rows["publish_time"] = pd.to_datetime(em[time_col], errors="coerce") if time_col else pd.NaT
+        em_rows["source"] = "eastmoney_stock"
+
+    # --- Path 2: filtered slice of the multi-source global feed ---
+    try:
+        global_df = _get_global_news_df_cached()
+        global_rows = _filter_global_news_by_ticker(
+            global_df, ticker, name, start_date, end_date
+        )
+    except Exception as e:
+        logger.warning("global-news ticker-filter failed for %s: %s", ticker, e)
+        global_rows = pd.DataFrame()
+
+    # --- Merge + date-window filter on the em path ---
+    if not em_rows.empty:
         start = pd.to_datetime(start_date)
-        end = pd.to_datetime(end_date) + pd.Timedelta(days=1)  # inclusive of end_date
-        df = df[(df["_dt"] >= start) & (df["_dt"] < end)].drop(columns=["_dt"])
+        end = pd.to_datetime(end_date) + pd.Timedelta(days=1)
+        em_in = em_rows["publish_time"].between(start, end, inclusive="left")
+        em_rows = em_rows[em_in | em_rows["publish_time"].isna()]
 
-    if df.empty:
+    combined = pd.concat(
+        [r for r in (em_rows, global_rows) if r is not None and not r.empty],
+        ignore_index=True,
+    ) if (not em_rows.empty or (global_rows is not None and not global_rows.empty)) else pd.DataFrame()
+
+    if combined.empty:
         return f"## News for {ticker} {start_date} → {end_date}\n\n_No news in window._"
 
-    return format_df_as_md(df, f"News for {ticker} {start_date} → {end_date}", max_rows=20)
+    # Dedupe by headline (cls + em sometimes mirror the same announcement)
+    combined = combined.drop_duplicates(subset=["title"], keep="first")
+    combined = combined.sort_values("publish_time", ascending=False, na_position="last")
+
+    return format_df_as_md(
+        combined,
+        f"News for {ticker} {start_date} → {end_date} "
+        f"(merged eastmoney/stock + {combined['source'].nunique() - 1} global sources)",
+        max_rows=25,
+    )
 
 
 def get_global_news_akshare(curr_date: str, look_back_days=None, limit=None) -> str:

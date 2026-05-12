@@ -55,6 +55,22 @@ from .akshare_capital_flow import (
     get_fund_flow_akshare,
 )
 
+# TuShare-backed implementations (preferred for A-share when TUSHARE_TOKEN is set).
+# Each tushare_* function falls back to its akshare_* sibling via the
+# route_to_vendor() fallback chain on permission / quota / transient failure.
+from .tushare_common import is_tushare_available
+from .tushare_news import get_news_tushare
+from .tushare_sentiment import get_shareholder_count_tushare
+from .tushare_market import get_insider_transactions_tushare
+from .tushare_capital_flow import (
+    get_lhb_detail_tushare,
+    get_lhb_institutional_tushare,
+    get_north_capital_individual_tushare,
+    get_north_capital_overall_tushare,
+    get_margin_trading_tushare,
+    get_fund_flow_tushare,
+)
+
 # Configuration and routing logic
 from .config import get_config
 
@@ -110,9 +126,11 @@ TOOLS_CATEGORIES = {
     },
 }
 
-VENDOR_LIST = ["yfinance", "alpha_vantage", "akshare"]
+VENDOR_LIST = ["yfinance", "alpha_vantage", "akshare", "tushare"]
 
-# Mapping of methods to their vendor-specific implementations
+# Mapping of methods to their vendor-specific implementations.
+# Where tushare and akshare overlap, A-share tickers prefer tushare (when
+# token is available); see route_to_vendor for the A-share routing logic.
 VENDOR_METHODS = {
     # core_stock_apis
     "get_stock_data": {
@@ -151,6 +169,7 @@ VENDOR_METHODS = {
     "get_news": {
         "alpha_vantage": get_alpha_vantage_news,
         "yfinance": get_news_yfinance,
+        "tushare": get_news_tushare,         # A-share: preferred (richer feed)
         "akshare": get_news_akshare,
     },
     "get_global_news": {
@@ -161,19 +180,42 @@ VENDOR_METHODS = {
     "get_insider_transactions": {
         "alpha_vantage": get_alpha_vantage_insider_transactions,
         "yfinance": get_yfinance_insider_transactions,
+        "tushare": get_insider_transactions_tushare,  # A-share: preferred
         "akshare": get_insider_transactions_akshare,
     },
-    # New methods (akshare-only)
-    "get_announcements":               {"akshare": get_announcements_akshare},
-    "get_stock_hot_rank":              {"akshare": get_stock_hot_rank_akshare},
-    "get_shareholder_count":           {"akshare": get_shareholder_count_akshare},
-    "get_research_reports":            {"akshare": get_research_reports_akshare},
-    "get_lhb_detail":                  {"akshare": get_lhb_detail_akshare},
-    "get_lhb_institutional":           {"akshare": get_lhb_institutional_akshare},
-    "get_north_capital_individual":    {"akshare": get_north_capital_individual_akshare},
-    "get_north_capital_overall":       {"akshare": get_north_capital_overall_akshare},
-    "get_margin_trading":              {"akshare": get_margin_trading_akshare},
-    "get_fund_flow":                   {"akshare": get_fund_flow_akshare},
+    # A-share specific tools (akshare + tushare). tushare is preferred for
+    # A-share when token is configured (see route_to_vendor below).
+    "get_announcements":               {"akshare": get_announcements_akshare},  # anns_d 积分不够
+    "get_stock_hot_rank":              {"akshare": get_stock_hot_rank_akshare},  # 东财独家
+    "get_research_reports":            {"akshare": get_research_reports_akshare},  # report_rc 积分不够
+    "get_shareholder_count": {
+        "tushare": get_shareholder_count_tushare,
+        "akshare": get_shareholder_count_akshare,
+    },
+    "get_lhb_detail": {
+        "tushare": get_lhb_detail_tushare,
+        "akshare": get_lhb_detail_akshare,
+    },
+    "get_lhb_institutional": {
+        "tushare": get_lhb_institutional_tushare,
+        "akshare": get_lhb_institutional_akshare,
+    },
+    "get_north_capital_individual": {
+        "tushare": get_north_capital_individual_tushare,
+        "akshare": get_north_capital_individual_akshare,
+    },
+    "get_north_capital_overall": {
+        "tushare": get_north_capital_overall_tushare,
+        "akshare": get_north_capital_overall_akshare,
+    },
+    "get_margin_trading": {
+        "tushare": get_margin_trading_tushare,
+        "akshare": get_margin_trading_akshare,
+    },
+    "get_fund_flow": {
+        "tushare": get_fund_flow_tushare,
+        "akshare": get_fund_flow_akshare,
+    },
 }
 
 def get_category_for_method(method: str) -> str:
@@ -230,8 +272,20 @@ def route_to_vendor(method: str, *args, **kwargs):
     if tool_override:
         primary_vendors = [tool_override]
     elif market == "a_share":
-        primary_vendors = ["akshare"]
-        logger.info("Ticker %s detected as A-share, routing %s to akshare", ticker, method)
+        # A-share: prefer tushare when (a) the token is configured AND (b)
+        # this method has a tushare implementation registered. The vendor
+        # fallback chain (built below) ensures akshare picks up on any
+        # tushare permission / quota / transient failure transparently.
+        method_vendors = VENDOR_METHODS.get(method, {})
+        if "tushare" in method_vendors and is_tushare_available():
+            primary_vendors = ["tushare", "akshare"]
+            logger.info(
+                "Ticker %s detected as A-share, routing %s tushare→akshare",
+                ticker, method,
+            )
+        else:
+            primary_vendors = ["akshare"]
+            logger.info("Ticker %s detected as A-share, routing %s to akshare", ticker, method)
     else:
         vendor_config = config.get("data_vendors", {}).get(category, "default")
         primary_vendors = [v.strip() for v in vendor_config.split(",")]
