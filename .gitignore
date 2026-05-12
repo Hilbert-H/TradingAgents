@@ -221,3 +221,7 @@ __marimo__/
 # Git worktrees (project-local isolated workspaces)
 .worktrees/
 analyses/
+
+# macOS Finder metadata
+.DS_Store
+._*
