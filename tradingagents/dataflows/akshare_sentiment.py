@@ -1,6 +1,8 @@
 """Akshare implementations for sentiment proxies (A-share)."""
 
 import logging
+import time
+
 import akshare as ak
 import pandas as pd
 
@@ -9,31 +11,81 @@ from .akshare_common import ak_retry, format_df_as_md, to_ak_symbol, to_ak_symbo
 logger = logging.getLogger(__name__)
 
 
+# Process-level cache for the eastmoney hot-rank snapshot. The snapshot is
+# a top-100 board-wide list — exact same data for every ticker — so caching
+# turns N×500 hits into ~N. The detail endpoint (per-ticker history) is
+# stable on its own and doesn't need caching.
+_HOT_RANK_SNAPSHOT_CACHE: dict = {"ts": 0.0, "df": None}
+_HOT_RANK_SNAPSHOT_TTL_SECS = 900   # 15 minutes
+
+
+def _get_hot_rank_snapshot() -> "pd.DataFrame | None":
+    """Cached fetch of ak.stock_hot_rank_em() with longer in-process TTL.
+
+    This endpoint is the rate-limited bottleneck (it returns the board-wide
+    top-100 attention list and east-money tightens limits on it under load).
+    Wrapped in our own try/except so a single bad call doesn't poison the
+    whole report — the per-stock detail endpoint is independent and works
+    even when the snapshot is unavailable.
+    """
+    now = time.time()
+    cached = _HOT_RANK_SNAPSHOT_CACHE["df"]
+    if cached is not None and now - _HOT_RANK_SNAPSHOT_CACHE["ts"] < _HOT_RANK_SNAPSHOT_TTL_SECS:
+        return cached
+    try:
+        df = ak.stock_hot_rank_em()
+        if df is not None and not df.empty:
+            _HOT_RANK_SNAPSHOT_CACHE["df"] = df
+            _HOT_RANK_SNAPSHOT_CACHE["ts"] = now
+            return df
+    except Exception as e:
+        logger.warning("stock_hot_rank_em snapshot unavailable (cached miss): %s", e)
+    return None
+
+
 @ak_retry()
 def get_stock_hot_rank_akshare(ticker: str, curr_date: str) -> str:
-    """Combined east-money attention rank for an A-share (global snapshot + per-stock history)."""
+    """Eastmoney attention rank for an A-share — cached snapshot + per-stock history.
+
+    Two complementary signals:
+      1. **Snapshot rank** — is this ticker currently in the top-100 attention
+         list? Cached per process for 15 min so 500 tickers in a batch don't
+         all hit the rate-limited endpoint.
+      2. **Per-stock history** — daily attention rank over the last ~year.
+         Always tried; this endpoint is more reliable than the snapshot.
+    """
     symbol = to_ak_symbol(ticker)
     market_symbol = to_ak_symbol_with_market(ticker)  # e.g. "SH600487"
     sections = []
 
-    try:
-        em = ak.stock_hot_rank_em()       # full board snapshot
-        if em is not None and not em.empty:
-            code_col = next((c for c in em.columns if "代码" in c), None)
-            if code_col:
-                em = em[em[code_col].astype(str).str.zfill(6) == symbol]
-        sections.append(format_df_as_md(em, "East-Money Hot Rank (snapshot)", max_rows=10))
-    except Exception as e:
-        logger.warning("stock_hot_rank_em failed: %s", e)
-        sections.append("## East-Money Hot Rank (snapshot)\n\n_Source unavailable._")
+    snapshot = _get_hot_rank_snapshot()
+    if snapshot is not None:
+        code_col = next((c for c in snapshot.columns if "代码" in c), None)
+        if code_col:
+            hit = snapshot[snapshot[code_col].astype(str).str.zfill(6) == symbol]
+            if not hit.empty:
+                sections.append(format_df_as_md(hit, "East-Money Hot Rank (current snapshot)", max_rows=5))
+            else:
+                sections.append(
+                    "## East-Money Hot Rank (current snapshot)\n\n"
+                    f"_{ticker} not in current top-{len(snapshot)} attention list._"
+                )
+    else:
+        sections.append(
+            "## East-Money Hot Rank (current snapshot)\n\n"
+            "_Snapshot endpoint rate-limited; relying on per-stock history below._"
+        )
 
     try:
-        # stock_hot_rank_wc (同花顺) was removed; use stock_hot_rank_detail_em for per-stock history
         detail = ak.stock_hot_rank_detail_em(symbol=market_symbol)
-        sections.append(format_df_as_md(detail, "East-Money Hot Rank (history)", max_rows=20))
+        if detail is not None and not detail.empty:
+            # Keep only the most recent 30 trading days — older history is
+            # noise for short-horizon sentiment work.
+            detail = detail.tail(30)
+        sections.append(format_df_as_md(detail, "East-Money Hot Rank (last 30 trading days)", max_rows=30))
     except Exception as e:
         logger.warning("stock_hot_rank_detail_em failed for %s: %s", market_symbol, e)
-        sections.append("## East-Money Hot Rank (history)\n\n_Source unavailable._")
+        sections.append("## East-Money Hot Rank (last 30 trading days)\n\n_Source unavailable._")
 
     return f"# Attention rank for {ticker} (as of {curr_date})\n\n" + "\n\n".join(sections)
 

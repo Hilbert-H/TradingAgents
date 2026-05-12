@@ -5,13 +5,24 @@ the old version had a prompt that demanded social-media analysis but the
 only tool available was Yahoo Finance news — which led LLMs to fabricate
 Reddit/X/StockTwits content under prompt pressure (verified live).
 
-The redesigned agent pre-fetches three complementary data sources before
-the LLM is invoked and injects them into the prompt as structured blocks:
+The redesigned agent pre-fetches complementary data sources before the
+LLM is invoked and injects them into the prompt as structured blocks.
+The data sources are chosen per market:
 
-  1. News headlines     — Yahoo Finance (institutional framing)
-  2. StockTwits messages — retail-trader posts indexed by cashtag, with
-                           user-labeled Bullish/Bearish sentiment tags
-  3. Reddit posts        — r/wallstreetbets, r/stocks, r/investing
+A-share (``.SS`` / ``.SH`` / ``.SZ`` suffix) — pulled from akshare:
+  1. **News headlines** — East-Money per-stock news, past 7 days
+  2. **East-Money attention rank** — current top-100 + per-stock daily history
+  3. **Shareholder count** — quarterly history (chip-concentration proxy)
+  4. **Research reports** — analyst target prices and ratings, past 7 days
+
+  StockTwits and Reddit are skipped — they have zero coverage of A-share
+  cashtags / tickers and previously returned empty placeholders that
+  triggered the LLM into "based on limited data" narratives.
+
+Non-A-share (US, HK, EU, etc.):
+  1. News headlines — Yahoo Finance, past 7 days
+  2. StockTwits messages — retail-trader cashtag stream
+  3. Reddit posts — r/wallstreetbets, r/stocks, r/investing
 
 The agent does not use tool-calling; the data is in the prompt from
 turn 0. The LLM produces the sentiment report in a single invocation.
@@ -26,7 +37,11 @@ from tradingagents.agents.utils.agent_utils import (
     build_instrument_context,
     get_language_instruction,
     get_news,
+    get_stock_hot_rank,
+    get_shareholder_count,
+    get_research_reports,
 )
+from tradingagents.dataflows.akshare_common import is_a_share
 from tradingagents.dataflows.reddit import fetch_reddit_posts
 from tradingagents.dataflows.stocktwits import fetch_stocktwits_messages
 
@@ -38,9 +53,9 @@ def _seven_days_back(trade_date: str) -> str:
 def create_sentiment_analyst(llm):
     """Create a sentiment analyst node for the trading graph.
 
-    Pre-fetches news + StockTwits + Reddit data, injects them into the
-    prompt as structured blocks, and produces a sentiment report in a
-    single LLM call.
+    Routes to one of two data-source bundles based on whether the target
+    ticker is an A-share, then produces a sentiment report in a single
+    LLM call (no tool-calling — data is pre-fetched into the prompt).
     """
 
     def sentiment_analyst_node(state):
@@ -49,21 +64,14 @@ def create_sentiment_analyst(llm):
         start_date = _seven_days_back(end_date)
         instrument_context = build_instrument_context(ticker)
 
-        # Pre-fetch all three sources. Each fetcher degrades gracefully and
-        # returns a string (no exceptions surface from here), so the LLM
-        # always sees something — either real data or a clear placeholder.
-        news_block = get_news.func(ticker, start_date, end_date)
-        stocktwits_block = fetch_stocktwits_messages(ticker, limit=30)
-        reddit_block = fetch_reddit_posts(ticker)
-
-        system_message = _build_system_message(
-            ticker=ticker,
-            start_date=start_date,
-            end_date=end_date,
-            news_block=news_block,
-            stocktwits_block=stocktwits_block,
-            reddit_block=reddit_block,
-        )
+        if is_a_share(ticker):
+            system_message = _build_a_share_system_message(
+                ticker=ticker, start_date=start_date, end_date=end_date,
+            )
+        else:
+            system_message = _build_us_system_message(
+                ticker=ticker, start_date=start_date, end_date=end_date,
+            )
 
         prompt = ChatPromptTemplate.from_messages(
             [
@@ -83,8 +91,6 @@ def create_sentiment_analyst(llm):
         prompt = prompt.partial(current_date=end_date)
         prompt = prompt.partial(instrument_context=instrument_context)
 
-        # No bind_tools — the data is already in the prompt; a single LLM
-        # call produces the report directly.
         chain = prompt | llm
         result = chain.invoke(state["messages"])
 
@@ -96,16 +102,93 @@ def create_sentiment_analyst(llm):
     return sentiment_analyst_node
 
 
-def _build_system_message(
-    *,
-    ticker: str,
-    start_date: str,
-    end_date: str,
-    news_block: str,
-    stocktwits_block: str,
-    reddit_block: str,
-) -> str:
-    """Assemble the sentiment-analyst system message with structured data blocks."""
+# ---------------------------------------------------------------------------
+# A-share branch — uses akshare-native signals
+# ---------------------------------------------------------------------------
+def _build_a_share_system_message(*, ticker: str, start_date: str, end_date: str) -> str:
+    """Pre-fetch A-share-specific signals and assemble the system message.
+
+    Every fetcher degrades gracefully to a placeholder string, so the LLM
+    always sees something — either real data or a clear unavailable marker.
+    """
+    news_block        = get_news.func(ticker, start_date, end_date)
+    hot_rank_block    = get_stock_hot_rank.func(ticker, end_date)
+    shareholder_block = get_shareholder_count.func(ticker, end_date)
+    research_block    = get_research_reports.func(ticker, start_date, end_date)
+
+    return f"""You are an A-share market sentiment analyst. Your task is to produce a comprehensive sentiment report for {ticker} covering {start_date} → {end_date}, drawing on four complementary data sources that have already been collected for you from akshare (东方财富 / 同花顺).
+
+## Data sources (pre-fetched, in this prompt)
+
+### 1) 近期新闻舆情 — 东方财富个股新闻，过去 7 天
+Per-stock news from East-Money. Fact-driven; includes both standalone company stories and the stock's appearance in sector / theme round-ups.
+
+<start_of_news>
+{news_block}
+<end_of_news>
+
+### 2) 东方财富热度排名 — 当前 snapshot + 个股近 30 个交易日历史
+Attention-rank signal — measures retail interest. The "新晋粉丝 / 铁杆粉丝" ratio matters: rising new-fan share signals fresh attention; high tenured-fan share signals stable conviction.
+
+<start_of_hot_rank>
+{hot_rank_block}
+<end_of_hot_rank>
+
+### 3) 股东户数 / 筹码集中度 — 季度历史
+Chip-concentration proxy. **Falling shareholder count = chips concentrating (often institutional accumulation)**; rising count = retail dispersion. Compare户均持股 trend with price.
+
+<start_of_shareholder>
+{shareholder_block}
+<end_of_shareholder>
+
+### 4) 研报 / 机构评级 — 过去 7 天分析师研报
+Sell-side institutional view. Look for: ratings (买入 / 增持 / 持有), target prices (目标价), rating changes (upgrade / downgrade), and the underlying logic in 标题.
+
+<start_of_research>
+{research_block}
+<end_of_research>
+
+## Required output structure (MUST follow exactly — top-level sections are H3 ``###`` to nest cleanly under the report's outer H2 heading)
+
+### 一、综合情绪结论
+One-paragraph headline: overall sentiment direction (看多 / 看空 / 中性 / 分化) + confidence level + key driver.
+
+### 二、近期新闻舆情分析
+Walk through the news block above. Pull out concrete events with dates. Note板块联动 vs. 公司专属事件. If news mentioned the stock only in a list (e.g. "100股获机构买入评级"), say so — it's weaker signal than a dedicated headline.
+
+### 三、东方财富热度排名分析
+**This MUST be its own section.** Report the current rank (or "未进入top-100"), then describe the 30-day trajectory using specific numbers from the data block. Cross-reference with price action where possible. Flag any 新晋粉丝 / 铁杆粉丝 ratio shifts.
+
+### 四、股东户数 / 筹码集中度分析
+**This MUST be its own section.** Use the actual numbers from the shareholder block. If only old data is available (akshare sometimes returns data through 2022 only), state the cutoff explicitly. Quote最近两期股东户数 and 户均持股市值, compute % change, and interpret (机构吸筹 vs. 散户化).
+
+### 五、研报 / 机构评级分析
+**This MUST be its own section.** List each research report with: date, 机构, 评级, 目标价 (if any), and the one-line thesis. If no reports in window, say so explicitly. Then compute aggregate signal: 几家买入 / 几家增持 / 几家中性, average目标价 if computable.
+
+### 六、关键风险与催化剂
+What in the data could move the price in the next 1–5 trading days?
+
+### 七、关键信号汇总表 (markdown table)
+Columns: 维度 | 信号 | 方向（看多/看空/中性）| 重要性 (⭐⭐⭐⭐⭐). One row per data source.
+
+## Rules
+1. **No fabrication.** If a data block contains "_Source unavailable_" or "_No data._", explicitly say so in the corresponding section and base your judgment only on what you do have.
+2. **Cite specific numbers** — dates, percentages, rank values, target prices. The reader will fact-check.
+3. **No StockTwits / Reddit references** — those sources have no A-share coverage and are not provided.
+4. **Sections 二 through 五 are MANDATORY independent subsections.** Do not collapse 股东户数 into the summary table only, and do not merge 研报 into 新闻 — each gets its own ``###`` section with at least a short paragraph plus the relevant data points even when data is sparse.
+
+{get_language_instruction()}"""
+
+
+# ---------------------------------------------------------------------------
+# Non-A-share branch — original upstream design
+# ---------------------------------------------------------------------------
+def _build_us_system_message(*, ticker: str, start_date: str, end_date: str) -> str:
+    """Pre-fetch StockTwits + Reddit + news and assemble the upstream-style prompt."""
+    news_block = get_news.func(ticker, start_date, end_date)
+    stocktwits_block = fetch_stocktwits_messages(ticker, limit=30)
+    reddit_block = fetch_reddit_posts(ticker)
+
     return f"""You are a financial market sentiment analyst. Your task is to produce a comprehensive sentiment report for {ticker} covering the period from {start_date} to {end_date}, drawing on three complementary data sources that have already been collected for you.
 
 ## Data sources (pre-fetched, in this prompt)

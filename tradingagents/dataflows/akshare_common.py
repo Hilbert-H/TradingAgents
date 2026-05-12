@@ -3,6 +3,7 @@
 import functools
 import logging
 import os
+import random
 import time
 from contextlib import contextmanager
 from functools import wraps
@@ -11,6 +12,28 @@ from typing import Optional
 import pandas as pd
 
 logger = logging.getLogger(__name__)
+
+
+# Errors that suggest the remote is rate-limiting or transiently overloaded.
+# We use longer / jittered backoff for these so a parallel batch (8+ workers
+# all hitting eastmoney at once) doesn't dog-pile.
+_RATE_LIMIT_PATTERNS = (
+    "remote end closed connection",
+    "connection aborted",
+    "connection reset",
+    "max retries exceeded",
+    "read timed out",
+    "timeout",
+    "429",
+    "too many requests",
+    "limit",
+    "服务繁忙",
+)
+
+
+def _looks_rate_limited(exc: BaseException) -> bool:
+    text = str(exc).lower()
+    return any(p in text for p in _RATE_LIMIT_PATTERNS)
 
 _PROXY_ENV_KEYS = (
     "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY",
@@ -84,8 +107,16 @@ def to_ak_symbol_with_market(ticker: str) -> str:
     raise NotApplicableError(f"{ticker!r} has an unrecognised market prefix '{first}'")
 
 
-def ak_retry(max_attempts: int = 3, base_delay: float = 1.0):
-    """Decorator: retry on transient errors with exponential backoff.
+def ak_retry(max_attempts: int = 5, base_delay: float = 1.5):
+    """Decorator: retry on transient errors with exponential backoff + jitter.
+
+    Rate-limit-flavored failures (connection aborted, read timeout, 429,
+    "服务繁忙") get a longer backoff window because they signal the remote
+    is overloaded, not that our request is bad. Regular transient failures
+    use the shorter exponential schedule.
+
+    A small uniform jitter is added so that 8 parallel worker processes
+    that all hit the same rate-limit at once don't retry in lockstep.
 
     `NotApplicableError` is never retried — that's a permanent classification
     error, not a transient failure.
@@ -102,13 +133,22 @@ def ak_retry(max_attempts: int = 3, base_delay: float = 1.0):
                     raise
                 except Exception as e:
                     last_exc = e
-                    if attempt < max_attempts - 1:
-                        delay = base_delay * (2 ** attempt)
-                        logger.warning(
-                            "akshare call %s failed (attempt %d/%d): %s; retrying in %.1fs",
-                            fn.__name__, attempt + 1, max_attempts, e, delay,
-                        )
-                        time.sleep(delay)
+                    if attempt >= max_attempts - 1:
+                        break
+                    if _looks_rate_limited(e):
+                        # Longer backoff: 3, 6, 12, 24, 48 seconds (capped at 60)
+                        # plus 0–2s jitter to desynchronise parallel workers.
+                        delay = min(60.0, 3.0 * (2 ** attempt)) + random.uniform(0, 2.0)
+                        tag = "rate-limit"
+                    else:
+                        # Regular transient: 1.5, 3, 6, 12, 24 seconds
+                        delay = base_delay * (2 ** attempt) + random.uniform(0, 0.5)
+                        tag = "transient"
+                    logger.warning(
+                        "akshare call %s [%s] failed (attempt %d/%d): %s; retrying in %.1fs",
+                        fn.__name__, tag, attempt + 1, max_attempts, e, delay,
+                    )
+                    time.sleep(delay)
             logger.error("akshare call %s exhausted retries: %s", fn.__name__, last_exc)
             raise last_exc
         return wrapper

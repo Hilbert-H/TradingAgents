@@ -84,19 +84,37 @@ def get_indicator_akshare(
 
 @ak_retry()
 def get_insider_transactions_akshare(ticker: str, curr_date: str = None) -> str:
-    """Combined executive + 5%+ shareholder transactions for an A-share."""
+    """Combined executive + 5%+ shareholder transactions for an A-share.
+
+    ``stock_ggcg_em`` is a board-wide endpoint — its ``symbol`` arg accepts
+    only ``"全部" / "股东增持" / "股东减持"``, NOT a ticker code. We fetch
+    the full board snapshot once and filter to the target ticker. The
+    snapshot is cached at process level since it's identical for every
+    caller within a batch.
+    """
     symbol = to_ak_symbol(ticker)
     market_symbol = to_ak_symbol_with_market(ticker)
     date_suffix = f" (as of {curr_date})" if curr_date else ""
 
     sections = []
 
-    # 1) Executive transactions (高管增减持)
+    # 1) Executive transactions (高管增减持) — board-wide endpoint, filter to ticker
     try:
-        execs = ak.stock_ggcg_em(symbol=symbol)
-        sections.append(format_df_as_md(execs, "Executive (高管) Transactions", max_rows=30))
+        execs = _get_ggcg_snapshot()
+        if execs is not None and not execs.empty:
+            code_col = next((c for c in execs.columns if "代码" in c), None)
+            if code_col:
+                hits = execs[execs[code_col].astype(str).str.zfill(6) == symbol]
+                if not hits.empty:
+                    sections.append(format_df_as_md(hits, "Executive (高管) Transactions", max_rows=30))
+                else:
+                    sections.append("## Executive (高管) Transactions\n\n_No executive trades for this ticker in the recent board snapshot._")
+            else:
+                sections.append("## Executive (高管) Transactions\n\n_Snapshot returned, but ticker column not found._")
+        else:
+            sections.append("## Executive (高管) Transactions\n\n_Source unavailable._")
     except Exception as e:
-        logger.warning("stock_ggcg_em failed for %s: %s", symbol, e)
+        logger.warning("stock_ggcg_em snapshot failed for %s: %s", symbol, e)
         sections.append("## Executive (高管) Transactions\n\n_Source unavailable._")
 
     # 2) Major shareholder (5%+) transactions — endpoint depends on exchange
@@ -111,3 +129,21 @@ def get_insider_transactions_akshare(ticker: str, curr_date: str = None) -> str:
         sections.append("## Major Shareholder Transactions\n\n_Source unavailable._")
 
     return f"# Insider transactions for {ticker}{date_suffix}\n\n" + "\n\n".join(sections)
+
+
+# Process-level cache for the board-wide executive transactions snapshot.
+# Same content for every ticker, fetch once per ~hour per worker.
+_GGCG_CACHE: dict = {"ts": 0.0, "df": None}
+_GGCG_TTL_SECS = 3600  # 1 hour — executive trades publish slowly
+
+
+def _get_ggcg_snapshot():
+    import time as _t
+    now = _t.time()
+    if _GGCG_CACHE["df"] is not None and now - _GGCG_CACHE["ts"] < _GGCG_TTL_SECS:
+        return _GGCG_CACHE["df"]
+    df = ak.stock_ggcg_em(symbol="全部")
+    if df is not None and not df.empty:
+        _GGCG_CACHE["df"] = df
+        _GGCG_CACHE["ts"] = now
+    return df
