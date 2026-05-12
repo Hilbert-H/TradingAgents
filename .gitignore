@@ -222,6 +222,9 @@ __marimo__/
 .worktrees/
 analyses/
 
+# Opus 决策链复盘的运行时日志 / 临时 prompt / launcher（由 bin/spawn_opus_analysis.sh 生成）
+.opus_logs/
+
 # macOS Finder metadata
 .DS_Store
 ._*

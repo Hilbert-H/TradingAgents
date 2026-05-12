@@ -67,6 +67,7 @@ def analyze_one(ticker: str, trade_date: str, output_dir_str: str) -> tuple:
     from dotenv import load_dotenv
     from tradingagents.graph.trading_graph import TradingAgentsGraph
     from tradingagents.graph.markdown_export import save_analysis_markdown
+    from tradingagents.graph.opus_spawn import maybe_spawn_opus
     from tradingagents.default_config import DEFAULT_CONFIG
 
     load_dotenv()
@@ -91,6 +92,9 @@ def analyze_one(ticker: str, trade_date: str, output_dir_str: str) -> tuple:
         )
         _, decision = ta.propagate(ticker, trade_date)
         md_path = save_analysis_markdown(ta.curr_state, ticker, trade_date, Path(output_dir_str))
+        # Async fire-and-forget Opus re-run for Buy / Overweight ratings;
+        # returns immediately (bash script daemonizes claude).
+        maybe_spawn_opus(md_path, decision)
         return (ticker, decision, str(md_path), None)
     except Exception as e:
         import traceback

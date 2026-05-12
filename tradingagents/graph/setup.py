@@ -85,7 +85,7 @@ class GraphSetup:
         # Create researcher and manager nodes
         bull_researcher_node = create_bull_researcher(self.quick_thinking_llm)
         bear_researcher_node = create_bear_researcher(self.quick_thinking_llm)
-        research_manager_node = create_research_manager(self.deep_thinking_llm)
+        research_manager_node = create_research_manager(self.quick_thinking_llm)
         trader_node = create_trader(self.quick_thinking_llm)
 
         # Create risk analysis nodes

@@ -60,6 +60,7 @@ _, decision = ta.propagate(ticker, date)
 
 from pathlib import Path
 from tradingagents.graph.markdown_export import save_analysis_markdown
+from tradingagents.graph.opus_spawn import maybe_spawn_opus
 
 # `ta.curr_state` holds the final state from the last propagate() (see TradingAgentsGraph)
 output_dir = Path(__file__).parent / "analyses"
@@ -68,3 +69,9 @@ print(f"\n📄 Markdown report saved to: {md_path}")
 
 print("\n========== FINAL DECISION ==========")
 print(decision)
+
+# If the Portfolio Manager voted Buy / Overweight, fire a background Opus
+# re-run of the decision chain (Bull/Bear → Research Manager → Trader →
+# Risk debate → PM) and write a sibling <basename>_Opus.md. Hold /
+# Underweight / Sell are skipped — see tradingagents/graph/opus_spawn.py.
+maybe_spawn_opus(md_path, decision)
