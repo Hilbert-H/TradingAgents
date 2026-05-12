@@ -8,6 +8,25 @@ ModelOption = Tuple[str, str]
 ProviderModeOptions = Dict[str, Dict[str, List[ModelOption]]]
 
 
+# Shared model list for GLM via Z.AI (international) and BigModel (China).
+# Source: docs.z.ai (GLM Coding Plan supported models + LLM guides).
+# All GLM 4.7+ entries support thinking mode via thinking={"type":"enabled"}.
+_GLM_MODELS: Dict[str, List[ModelOption]] = {
+    "quick": [
+        ("GLM-5-Turbo - Fast, switchable thinking modes", "glm-5-turbo"),
+        ("GLM-4.7 - Previous-gen flagship", "glm-4.7"),
+        ("GLM-4.5-Air - Lightweight, cost-efficient", "glm-4.5-air"),
+        ("Custom model ID", "custom"),
+    ],
+    "deep": [
+        ("GLM-5.1 - Latest flagship, 204K ctx", "glm-5.1"),
+        ("GLM-5 - Flagship, 204K ctx", "glm-5"),
+        ("GLM-4.7 - Previous-gen flagship", "glm-4.7"),
+        ("Custom model ID", "custom"),
+    ],
+}
+
+
 # Shared model list for Qwen's global (dashscope-intl) and CN (dashscope) endpoints.
 # Source: modelstudio.console.alibabacloud.com (Featured Models — Flagship + Cost-optimized).
 #
@@ -126,33 +145,34 @@ MODEL_OPTIONS: ProviderModeOptions = {
     # (dashscope) endpoints, so the two provider keys share one model list.
     "qwen": _QWEN_MODELS,
     "qwen-cn": _QWEN_MODELS,
-    "glm": {
-        "quick": [
-            ("GLM-4.7", "glm-4.7"),
-            ("GLM-5", "glm-5"),
-            ("Custom model ID", "custom"),
-        ],
-        "deep": [
-            ("GLM-5.1", "glm-5.1"),
-            ("GLM-5", "glm-5"),
-            ("Custom model ID", "custom"),
-        ],
-    },
+    # GLM: Z.AI (international) and BigModel (China) host the same model
+    # IDs; the two provider keys share one model list.
+    "glm": _GLM_MODELS,
+    "glm-cn": _GLM_MODELS,
     # MiniMax: same model IDs across global (.io) and China (.com) regions,
     # so the two provider keys share one model list.
     "minimax": _MINIMAX_MODELS,
     "minimax-cn": _MINIMAX_MODELS,
     # OpenRouter: fetched dynamically. Azure: any deployed model name.
+    # Ollama display labels intentionally omit a "local" marker — the
+    # endpoint is now configurable via OLLAMA_BASE_URL, so the same labels
+    # apply whether the user runs ollama-serve on localhost or against a
+    # remote host. The actual resolved endpoint is surfaced separately by
+    # cli.utils.confirm_ollama_endpoint() right after provider selection.
+    # "Custom model ID" lets users pick any model they have pulled via
+    # `ollama pull` beyond the three suggested defaults.
     "ollama": {
         "quick": [
-            ("Qwen3:latest (8B, local)", "qwen3:latest"),
-            ("GPT-OSS:latest (20B, local)", "gpt-oss:latest"),
-            ("GLM-4.7-Flash:latest (30B, local)", "glm-4.7-flash:latest"),
+            ("Qwen3:latest (8B)", "qwen3:latest"),
+            ("GPT-OSS:latest (20B)", "gpt-oss:latest"),
+            ("GLM-4.7-Flash:latest (30B)", "glm-4.7-flash:latest"),
+            ("Custom model ID", "custom"),
         ],
         "deep": [
-            ("GLM-4.7-Flash:latest (30B, local)", "glm-4.7-flash:latest"),
-            ("GPT-OSS:latest (20B, local)", "gpt-oss:latest"),
-            ("Qwen3:latest (8B, local)", "qwen3:latest"),
+            ("GLM-4.7-Flash:latest (30B)", "glm-4.7-flash:latest"),
+            ("GPT-OSS:latest (20B)", "gpt-oss:latest"),
+            ("Qwen3:latest (8B)", "qwen3:latest"),
+            ("Custom model ID", "custom"),
         ],
     },
 }

@@ -4,6 +4,7 @@ from typing import Any, Optional
 from langchain_core.messages import AIMessage
 from langchain_openai import ChatOpenAI
 
+from .api_key_env import get_api_key_env
 from .base_client import BaseLLMClient, normalize_content
 from .capabilities import get_capabilities
 from .validators import validate_model
@@ -135,19 +136,39 @@ _PASSTHROUGH_KWARGS = (
     "api_key", "callbacks", "http_client", "http_async_client",
 )
 
-# Provider base URLs and API key env vars
-_PROVIDER_CONFIG = {
-    "xai": ("https://api.x.ai/v1", "XAI_API_KEY"),
-    "deepseek": ("https://api.deepseek.com", "DEEPSEEK_API_KEY"),
-    "qwen": ("https://dashscope-intl.aliyuncs.com/compatible-mode/v1", "DASHSCOPE_API_KEY"),
-    "glm": ("https://api.z.ai/api/paas/v4/", "ZHIPU_API_KEY"),
-    # MiniMax exposes two regional endpoints with separate keys; mainland
-    # Chinese users hit .com while global users hit .io.
-    "minimax": ("https://api.minimax.io/v1", "MINIMAX_API_KEY"),
-    "minimax-cn": ("https://api.minimaxi.com/v1", "MINIMAX_CN_API_KEY"),
-    "openrouter": ("https://openrouter.ai/api/v1", "OPENROUTER_API_KEY"),
-    "ollama": ("http://localhost:11434/v1", None),
+# Provider base URLs. API-key env vars live in api_key_env.PROVIDER_API_KEY_ENV
+# (one canonical mapping consulted by both this client and the CLI's
+# interactive key-prompt). Dual-region providers (qwen/glm/minimax) keep
+# separate endpoints because international and China accounts cannot share
+# credentials (#758).
+_PROVIDER_BASE_URL = {
+    "xai":        "https://api.x.ai/v1",
+    "deepseek":   "https://api.deepseek.com",
+    "qwen":       "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "qwen-cn":    "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    "glm":        "https://api.z.ai/api/paas/v4/",
+    "glm-cn":     "https://open.bigmodel.cn/api/paas/v4/",
+    "minimax":    "https://api.minimax.io/v1",
+    "minimax-cn": "https://api.minimaxi.com/v1",
+    "openrouter": "https://openrouter.ai/api/v1",
+    "ollama":     "http://localhost:11434/v1",
 }
+
+
+def _resolve_provider_base_url(provider: str) -> Optional[str]:
+    """Default base URL for ``provider``, with env-var overrides where defined.
+
+    Currently only Ollama supports an env-var override (``OLLAMA_BASE_URL``),
+    matching the convention in the broader Ollama tooling ecosystem so users
+    can point at a remote ollama-serve without editing code. The check is
+    call-time, not import-time, so tests that monkeypatch the env after
+    import behave correctly.
+    """
+    if provider == "ollama":
+        env_url = os.environ.get("OLLAMA_BASE_URL")
+        if env_url:
+            return env_url
+    return _PROVIDER_BASE_URL.get(provider)
 
 
 class OpenAIClient(BaseLLMClient):
@@ -177,9 +198,9 @@ class OpenAIClient(BaseLLMClient):
         # Provider-specific base URL and auth. An explicit base_url on the
         # client (e.g. a corporate proxy) takes precedence over the
         # provider default so users can route through their own gateway.
-        if self.provider in _PROVIDER_CONFIG:
-            default_base, api_key_env = _PROVIDER_CONFIG[self.provider]
-            llm_kwargs["base_url"] = self.base_url or default_base
+        if self.provider in _PROVIDER_BASE_URL:
+            llm_kwargs["base_url"] = self.base_url or _resolve_provider_base_url(self.provider)
+            api_key_env = get_api_key_env(self.provider)
             if api_key_env:
                 api_key = os.environ.get(api_key_env)
                 if api_key:
