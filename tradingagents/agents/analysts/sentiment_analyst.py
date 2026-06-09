@@ -40,6 +40,10 @@ from tradingagents.agents.utils.agent_utils import (
     get_stock_hot_rank,
     get_shareholder_count,
     get_research_reports,
+    # THS additions: theme tags + 千股千评 + 雪球 retail-heat
+    get_concept_tags,
+    get_stock_comment,
+    get_xueqiu_hot,
 )
 from tradingagents.dataflows.akshare_common import is_a_share
 from tradingagents.dataflows.reddit import fetch_reddit_posts
@@ -115,8 +119,12 @@ def _build_a_share_system_message(*, ticker: str, start_date: str, end_date: str
     hot_rank_block    = get_stock_hot_rank.func(ticker, end_date)
     shareholder_block = get_shareholder_count.func(ticker, end_date)
     research_block    = get_research_reports.func(ticker, start_date, end_date)
+    # THS additions
+    concept_block     = get_concept_tags.func(ticker, end_date)
+    comment_block     = get_stock_comment.func(ticker, end_date)
+    xueqiu_block      = get_xueqiu_hot.func(ticker, end_date)
 
-    return f"""You are an A-share market sentiment analyst. Your task is to produce a comprehensive sentiment report for {ticker} covering {start_date} → {end_date}, drawing on four complementary data sources that have already been collected for you from akshare (东方财富 / 同花顺).
+    return f"""You are an A-share market sentiment analyst. Your task is to produce a comprehensive sentiment report for {ticker} covering {start_date} → {end_date}, drawing on seven complementary data sources that have already been collected for you from akshare (东方财富 / 同花顺 / 雪球).
 
 ## Data sources (pre-fetched, in this prompt)
 
@@ -148,6 +156,27 @@ Sell-side institutional view. Look for: ratings (买入 / 增持 / 持有), targ
 {research_block}
 <end_of_research>
 
+### 5) 概念题材热度 — 东方财富个股关键词概念
+Theme-rotation signal. Top concept names attached to this ticker with East-Money heat scores. High heat on a niche concept = the stock is currently a vehicle for that narrative. Use this to determine whether sentiment is being driven by company-specific events or by broader thematic flow (e.g. "工程机械概念" or "一带一路" being hot would imply sector trade rather than alpha).
+
+<start_of_concepts>
+{concept_block}
+<end_of_concepts>
+
+### 6) 千股千评 — 东方财富当日综合评分
+One-row snapshot summarising 综合得分 / 主力成本 / 机构参与度 / 关注指数 / 目前排名 / 上升 across the full A-share universe. 综合得分 60+ = neutral-bullish, 80+ = strong sentiment; 机构参与度 above ~50% indicates active institutional positioning vs. retail-only.
+
+<start_of_comment>
+{comment_block}
+<end_of_comment>
+
+### 7) 雪球热度 — 关注 / 讨论 / 成交 三榜
+Three Xueqiu leaderboards: 关注 (follower count), 讨论 (tweet volume), 成交 (Xueqiu-user trade activity). Empty / missing entries mean the stock is not currently in the top retail-attention list — itself a useful negative signal. When present, position in each leaderboard tells you about retail conviction, chatter, and turnover separately.
+
+<start_of_xueqiu>
+{xueqiu_block}
+<end_of_xueqiu>
+
 ## Required output structure (MUST follow exactly — top-level sections are H3 ``###`` to nest cleanly under the report's outer H2 heading)
 
 ### 一、综合情绪结论
@@ -165,17 +194,23 @@ Walk through the news block above. Pull out concrete events with dates. Note板�
 ### 五、研报 / 机构评级分析
 **This MUST be its own section.** List each research report with: date, 机构, 评级, 目标价 (if any), and the one-line thesis. If no reports in window, say so explicitly. Then compute aggregate signal: 几家买入 / 几家增持 / 几家中性, average目标价 if computable.
 
-### 六、关键风险与催化剂
+### 六、概念题材热度分析
+**This MUST be its own section.** List the top 3-5 concepts with their heat scores. Interpret whether the stock is currently riding a hot theme (concept heat > 500 and rising), a stale theme, or no notable theme. If a single concept dominates heat (e.g. 一个 concept 占总热度 > 60%), call out the dependency.
+
+### 七、千股千评 + 雪球热度交叉分析
+**This MUST be its own section.** Cross-reference 综合得分 + 机构参与度 (from 千股千评) with 雪球关注/讨论位次. Four scenarios to label explicitly: (a) 评分高 + 雪球热 = 共识强 / 可能过热; (b) 评分高 + 雪球冷 = 机构在内、散户未察; (c) 评分低 + 雪球热 = 散户炒作、缺机构支撑; (d) 评分低 + 雪球冷 = 边缘化. State which scenario applies and the implication.
+
+### 八、关键风险与催化剂
 What in the data could move the price in the next 1–5 trading days?
 
-### 七、关键信号汇总表 (markdown table)
-Columns: 维度 | 信号 | 方向（看多/看空/中性）| 重要性 (⭐⭐⭐⭐⭐). One row per data source.
+### 九、关键信号汇总表 (markdown table)
+Columns: 维度 | 信号 | 方向（看多/看空/中性）| 重要性 (⭐⭐⭐⭐⭐). One row per data source (7 rows minimum).
 
 ## Rules
 1. **No fabrication.** If a data block contains "_Source unavailable_" or "_No data._", explicitly say so in the corresponding section and base your judgment only on what you do have.
 2. **Cite specific numbers** — dates, percentages, rank values, target prices. The reader will fact-check.
 3. **No StockTwits / Reddit references** — those sources have no A-share coverage and are not provided.
-4. **Sections 二 through 五 are MANDATORY independent subsections.** Do not collapse 股东户数 into the summary table only, and do not merge 研报 into 新闻 — each gets its own ``###`` section with at least a short paragraph plus the relevant data points even when data is sparse.
+4. **Sections 二 through 七 are MANDATORY independent subsections.** Do not collapse 股东户数 into the summary table only, do not merge 研报 into 新闻, do not skip 概念题材 even when data is sparse — each gets its own ``###`` section with at least a short paragraph plus the relevant data points.
 
 {get_language_instruction()}"""
 

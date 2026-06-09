@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>三一重工 全量F10快照 · 2026-05-12</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a1f29;
+      --panel-2: #232934;
+      --border: #2d3441;
+      --fg: #e4e7eb;
+      --fg-dim: #9aa3ad;
+      --accent: #ef4444;
+      --accent-soft: #fb7185;
+      --link: #60a5fa;
+      --good: #22c55e;
+      --bad: #ef4444;
+      --warn: #eab308;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+    .layout { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+    nav.sidebar {
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: sticky;
+      top: 0;
+      max-height: 100vh;
+      overflow-y: auto;
+    }
+    nav.sidebar h1 {
+      margin: 0 20px 12px;
+      font-size: 16px;
+      color: var(--accent);
+    }
+    nav.sidebar .meta {
+      margin: 0 20px 20px;
+      font-size: 12px;
+      color: var(--fg-dim);
+    }
+    nav.sidebar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    nav.sidebar li a {
+      display: block;
+      padding: 6px 20px;
+      color: var(--fg-dim);
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      font-size: 13px;
+    }
+    nav.sidebar li a:hover {
+      color: var(--fg);
+      background: var(--panel-2);
+      border-left-color: var(--accent-soft);
+    }
+    nav.sidebar h2 {
+      font-size: 11px;
+      color: var(--fg-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 16px 20px 6px;
+    }
+    main {
+      padding: 32px 40px 80px;
+      max-width: 1400px;
+    }
+    header.hero {
+      background: linear-gradient(135deg, #1a1f29 0%, #281a25 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 32px;
+    }
+    header.hero h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      color: var(--accent);
+    }
+    header.hero .sub { color: var(--fg-dim); }
+    header.hero .stats {
+      display: flex;
+      gap: 32px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+    header.hero .stat {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 18px;
+      min-width: 120px;
+    }
+    header.hero .stat-label {
+      font-size: 11px;
+      color: var(--fg-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    header.hero .stat-value {
+      font-size: 22px;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+    section.card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
+    }
+    section.card > h2 {
+      margin: 0 0 4px;
+      font-size: 20px;
+      color: var(--fg);
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+    section.card > h2 .badge {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--accent-soft);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      letter-spacing: 0.04em;
+    }
+    section.card .src {
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 11px;
+      color: var(--fg-dim);
+      margin: 0 0 12px;
+    }
+    section.card .desc {
+      color: var(--fg-dim);
+      font-size: 13px;
+      margin: 0 0 14px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      overflow-x: auto;
+      display: block;
+    }
+    thead { background: var(--panel-2); }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      text-align: left;
+      vertical-align: top;
+      white-space: nowrap;
+    }
+    th {
+      color: var(--fg);
+      font-weight: 600;
+      font-size: 12px;
+      position: sticky;
+      top: 0;
+      background: var(--panel-2);
+    }
+    td {
+      color: var(--fg-dim);
+      max-width: 420px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    tbody tr:hover td { background: rgba(255,255,255,0.02); color: var(--fg); }
+    .empty { color: var(--fg-dim); font-style: italic; padding: 12px 0; margin: 0; }
+    .empty .reason { font-size: 11px; opacity: 0.7; }
+    .truncated { color: var(--fg-dim); font-size: 11px; margin: 6px 0 0; text-align: right; }
+    pre.md {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 16px;
+      overflow-x: auto;
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 11px;
+      color: var(--fg);
+      white-space: pre;
+      line-height: 1.45;
+    }
+    .toc-section { margin-top: 16px; }
+    footer {
+      margin-top: 60px;
+      color: var(--fg-dim);
+      font-size: 12px;
+      text-align: center;
+      padding: 20px;
+    }
+    </style>
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar"><h1>三一重工</h1>
+<div class="meta">600031 · 2026-05-12</div>
+<h2>新接入数据（同花顺类）</h2><ul>
+<li><a href="#company_profile">公司概况 <span style="color:#22c55e">·1</span></a></li>
+<li><a href="#individual_info">行情卡片</a></li>
+<li><a href="#business_intro">主营介绍 <span style="color:#22c55e">·1</span></a></li>
+<li><a href="#revenue_breakdown">主营构成 <span style="color:#22c55e">·200</span></a></li>
+<li><a href="#ipo_summary">IPO 信息 <span style="color:#22c55e">·1</span></a></li>
+<li><a href="#concept_tags">概念题材 <span style="color:#22c55e">·7</span></a></li>
+<li><a href="#financial_abstract">财务摘要（同花顺） <span style="color:#22c55e">·98</span></a></li>
+<li><a href="#profit_forecast">盈利预测 <span style="color:#22c55e">·3</span></a></li>
+<li><a href="#share_change">股本变动 <span style="color:#22c55e">·14</span></a></li>
+<li><a href="#shareholder_count">股东户数变化 <span style="color:#22c55e">·57</span></a></li>
+<li><a href="#shareholder_change">大股东增减持 <span style="color:#22c55e">·100</span></a></li>
+<li><a href="#management_change">高管变动 <span style="color:#22c55e">·142</span></a></li>
+<li><a href="#restricted_release">限售解禁日历 <span style="color:#22c55e">·5</span></a></li>
+<li><a href="#dividend_em">分红送转（东财） <span style="color:#22c55e">·25</span></a></li>
+<li><a href="#dividend_ths">分红方案（同花顺） <span style="color:#22c55e">·46</span></a></li>
+<li><a href="#pledge_ratio">股权质押比例 <span style="color:#22c55e">·1</span></a></li>
+<li><a href="#earnings_forecast">业绩预告</a></li>
+<li><a href="#earnings_express">业绩快报</a></li>
+<li><a href="#earnings_report">业绩报告 <span style="color:#22c55e">·4</span></a></li>
+<li><a href="#institutional_visits">机构调研</a></li>
+<li><a href="#block_trade">大宗交易 <span style="color:#22c55e">·2</span></a></li>
+<li><a href="#fund_flow">个股资金流向 <span style="color:#22c55e">·121</span></a></li>
+<li><a href="#northbound">北向持股 <span style="color:#22c55e">·1685</span></a></li>
+<li><a href="#investor_qa">投资者互动 <span style="color:#22c55e">·5</span></a></li>
+<li><a href="#research_reports">研报 <span style="color:#22c55e">·301</span></a></li>
+<li><a href="#stock_news">个股新闻</a></li>
+</ul>
+<h2>已有项目数据</h2><ul>
+<li><a href="#hot_rank">东财热度排名</a></li>
+<li><a href="#lhb_detail">龙虎榜（个股）</a></li>
+<li><a href="#lhb_inst">龙虎榜（机构席位）</a></li>
+<li><a href="#margin">融资融券</a></li>
+<li><a href="#north_indiv">北向资金（个股净流入）</a></li>
+<li><a href="#announcements">公司公告</a></li>
+<li><a href="#global_news">全市场宏观新闻</a></li>
+</ul></nav>
+    <main>
+    <header class="hero">
+      <h1>三一重工 <span style="color:var(--fg-dim);font-weight:400;font-size:18px">600031</span></h1>
+      <div class="sub">同花顺 F10 全量数据快照 · 报告日 2026-05-12</div>
+      <div class="stats">
+        <div class="stat"><div class="stat-label">行业</div><div class="stat-value">专用设备制造业</div></div>
+        <div class="stat"><div class="stat-label">上市日</div><div class="stat-value" style="font-size:18px">2003-07-03</div></div>
+        <div class="stat"><div class="stat-label">数据节</div><div class="stat-value">21/26</div></div>
+        <div class="stat"><div class="stat-label">总拉取时长</div><div class="stat-value" style="font-size:18px">238.0s</div></div>
+      </div>
+    </header>
+    
+        <section class="card" id="company_profile">
+          <h2>公司概况 <span class="badge">新接入</span></h2>
+          <p class="src">ak.stock_profile_cninfo · 418 ms · 行数 1</p>
+          <p class="desc">巨潮资讯公司档案：全称、英文名、行业、注册地址、上市日、董秘、电话邮箱等 26 个字段。</p>
+          <table><thead><tr><th>公司名称</th><th>英文名称</th><th>曾用简称</th><th>A股代码</th><th>A股简称</th><th>B股代码</th><th>B股简称</th><th>H股代码</th><th>H股简称</th><th>入选指数</th><th>所属市场</th><th>所属行业</th><th>法人代表</th><th>注册资金</th><th>成立日期</th><th>上市日期</th><th>官方网站</th><th>电子邮箱</th><th>联系电话</th><th>传真</th><th>注册地址</th><th>办公地址</th><th>邮政编码</th><th>主营业务</th><th>经营范围</th><th>机构简介</th></tr></thead><tbody><tr><td>三一重工股份有限公司</td><td>Sany Heavy Industry Co., Ltd.</td><td></td><td>600031</td><td>三一重工</td><td></td><td></td><td>06031</td><td>三一重工</td><td>ESG 300,ESG 40,分析师指数,国证A50,国证Ａ指,沪深300,巨潮100,巨潮大盘,上证180,上证50,责任指数,中证A100,中证新兴</td><td>上交所</td><td>专用设备制造业</td><td>向文波</td><td>919500.4437</td><td>1994-11-22</td><td>2003-07-03</td><td>www.sanyhi.com</td><td>sanyir@sany.com.cn</td><td>010-60737888、0731-84031555</td><td>0731-84031555</td><td>北京市昌平区北清路8号6幢5楼</td><td>北京市昌平区北清路8号</td><td>102206</td><td>工程机械产品及配件的开发、生产和销售。</td><td>生产建筑工程机械、起重机械、停车库、通用设备及机电设备（其中特种设备制造须凭本企业行政许可）、金属制品、橡胶制品、电子产品、钢丝增强液压橡胶软管和软管组合件、客车（不含小轿车）和改装车；建筑工程机械、起重机械、停车库、通用设备及机电设备的销售与维修；金属制品、橡胶制品及电子产品、钢丝增强液压橡胶软管和软管组合件的销售；客车（不含小轿车）和改装车的销售（凭审批机关许可文件经营）；五金及法律法规允许的矿产品、金属材料的销售；农业机械销售；提供建筑工程机械租赁服务；经营商品和技术的进出口业务（国家法律法规禁止和限制的除外）；农业机械制造（限外埠生产）。（市场主体依法自主选择经营项目，开展经营活动；依法须经批准的项目，经相关部门批准后依批准的内容开展经营活动；不得从事国家和本市产业政策禁止和限制类项目的经营活动。）</td><td>公司是经湖南省人民政府批准，由三一重工业集团有限公司整体变更设立的。经有限公司2000年10月28日股东会决议通过，有限公司以2000年10月31日为基准日经审计的净资产18000万元，按1：1的比例折为18000万股，由原有限公司股东三一控股有限公司、湖南高科技创业投资有限公司、锡山市亿利大机械有限公司、河南兴华机械制造厂和娄底市新野企业有限公司按其在原有限公司的权益比例持有，其中三一控股持有17380.93万股，高创投公司持有334.64万股，亿利大公司持有167.33万股，兴华厂持有89.24万股，新野公司持有27.86万股。三一重工业集团有限公司所有资产、债务和人员全部进入股份有限公司。并于2000年12月8日在湖南省工商行政管理局注册登记并领取企业法人营业执照，注册资本18000万元。</td></tr></tbody></table>
+        </section>
+        
+        <section class="card" id="individual_info">
+          <h2>行情卡片 <span class="badge">—</span></h2>
+          <p class="src">ak.stock_individual_info_em · 88 ms · 行数 0</p>
+          <p class="desc">东财行情卡片：总股本、流通股、总市值、行业、上市时间。</p>
+          <p class="empty">— 无数据 <span class="reason">(ConnectionError: (&#x27;Connection aborted.&#x27;, RemoteDisconnected(&#x27;Remote end closed connection without response&#x27;)))</span> —</p>
+        </section>
+        
+        <section class="card" id="business_intro">
+          <h2>主营介绍 <span class="badge">新接入</span></h2>
+          <p class="src">ak.stock_zyjs_ths · 250 ms · 行数 1</p>
+          <p class="desc">同花顺主营业务介绍：主营业务、产品类型、经营范围。</p>
+          <table><thead><tr><th>股票代码</th><th>主营业务</th><th>产品类型</th><th>产品名称</th><th>经营范围</th></tr></thead><tbody><tr><td>600031</td><td>工程机械的研发、制造、销售和服务。</td><td>混凝土机械、挖掘机械、起重机械、桩工机械、路面机械</td><td>混凝土机械、挖掘机械、起重机械、桩工机械、路面机械</td><td>生产建筑工程机械、起重机械、停车库、通用设备及机电设备（其中特种设备制造须凭本企业行政许可）、金属制品、橡胶制品、电子产品、钢丝增强液压橡胶软管和软管组合件、客车（不含小轿车）和改装车；建筑工程机械、起重机械、停车库、通用设备及机电设备的销售与维修；金属制品、橡胶制品及电子产品、钢丝增强液压橡胶软管和软管组合件的销售；客车（不含小轿车）和改装车的销售（凭审批机关许可文件经营）；五金及法律法规允许的矿产品、金属材料的销售；农业机械销售；提供建筑工程机械租赁服务；经营商品和技术的进出口业务（国家法律法规禁止和限制的除外）；农业机械制造(限外埠生产)。（市场主体依法自主选择经营项目，开展经营活动；依法须经批准的项目，经相关部门批准后依批准的内容开展经营活动；不得从事国家和本市产业政策禁止和限制类项目的经营活动。）</td></tr></tbody></table>
+        </section>
+        
+        <section class="card" id="revenue_breakdown">
+          <h2>主营构成 <span class="badge">新接入</span></h2>
+          <p class="src">ak.stock_zygc_em · 212 ms · 行数 200</p>
+          <p class="desc">东财主营构成：按行业 / 产品 / 地区拆分的收入、成本、毛利率，覆盖多个会计年度。</p>
+          <table><thead><tr><th>股票代码</th><th>报告日期</th><th>分类类型</th><th>主营构成</th><th>主营收入</th><th>收入比例</th><th>主营成本</th><th>成本比例</th><th>主营利润</th><th>利润比例</th><th>毛利率</th></tr></thead><tbody><tr><td>600031</td><td>2025-12-31</td><td>按行业分类</td><td>工程机械行业</td><td>87269985000</td><td>0.978023</td><td>63097659000.0</td><td>0.975833</td><td>24172326000.0</td><td>0.983785</td><td>0.276983</td></tr><tr><td>600031</td><td>2025-12-31</td><td>按行业分类</td><td>其他(补充)</td><td>1961038000</td><td>0.021977</td><td>1562634000.0</td><td>0.024167</td><td>398404000.0</td><td>0.016215</td><td>0.20316</td></tr><tr><td>600031</td><td>2025-12-31</td><td>按产品分类</td><td>挖掘机械</td><td>34543625000</td><td>0.387126</td><td>22714862000.0</td><td>0.351295</td><td>11828763000.0</td><td>0.481417</td><td>0.34243</td></tr><tr><td>600031</td><td>2025-12-31</td><td>按产品分类</td><td>其他</td><td>16810156000</td><td>0.188389</td><td>13751841000.0</td><td>0.212678</td><td>3058315000.0</td><td>0.12447</td><td>0.181933</td></tr><tr><td>600031</td><td>2025-12-31</td><td>按产品分类</td><td>混凝土机械</td><td>15737918000</td><td>0.176373</td><td>12566112000.0</td><td>0.19434</td><td>3171806000.0</td><td>0.129089</td><td>0.201539</td></tr><tr><td>600031</td><td>2025-12-31</td><td>按产品分类</td><td>起重机械</td><td>15562967000</td><td>0.174412</td><td>11055547000.0</td><td>0.170979</td><td>4507420000.0</td><td>0.183447</td><td>0.289625</td></tr><tr><td>600031</td><td>2025-12-31</td><td>按产品分类</td><td>路面机械</td><td>3756829000</td><td>0.042102</td><td>2679589000.0</td><td>0.041441</td><td>1077240000.0</td><td>0.043842</td><td>0.286742</td></tr><tr><td>600031</td><td>2025-12-31</td><td>按产品分类</td><td>桩工机械</td><td>2819528000</td><td>0.031598</td><td>1892342000.0</td><td>0.029266</td><td>927186000.0</td><td>0.037735</td><td>0.328844</td></tr><tr><td>600031</td><td>2025-12-31</td><td>按地区分类</td><td>国际</td><td>55856051000</td><td>0.625971</td><td>38181877000.0</td><td>0.5905</td><td>17674174000.0</td><td>0.719318</td><td>0.316424</td></tr><tr><td>600031</td><td>2025-12-31</td><td>按地区分类</td><td>国内</td><td>31413934000</td><td>0.352052</td><td>24915782000.0</td><td>0.385334</td><td>6498152000.0</td><td>0.264467</td><td>0.206856</td></tr><tr><td>600031</td><td>2025-12-31</td><td>按地区分类</td><td>其他(补充)</td><td>1961038000</td><td>0.021977</td><td>1562634000.0</td><td>0.024167</td><td>398404000.0</td><td>0.016215</td><td>0.20316</td></tr><tr><td>600031</td><td>2025-06-30</td><td>按行业分类</td><td>工程机械行业</td><td>43650473000</td><td>0.980168</td><td>31616439000.0</td><td>0.978377</td><td>12034034000.0</td><td>0.984906</td><td>0.275691</td></tr><tr><td>600031</td><td>2025-06-30</td><td>按行业分类</td><td>其他(补充)</td><td>883171000</td><td>0.019832</td><td>698748000.0</td><td>0.021623</td><td>184423000.0</td><td>0.015094</td><td>0.208819</td></tr><tr><td>600031</td><td>2025-06-30</td><td>按产品分类</td><td>挖掘机械</td><td>17496960000</td><td>0.392893</td><td>11768459000.0</td><td>0.364177</td><td>5728501000.0</td><td>0.46884</td><td>0.3274</td></tr><tr><td>600031</td><td>2025-06-30</td><td>按产品分类</td><td>起重机械</td><td>7804300000</td><td>0.175245</td><td>5536421000.0</td><td>0.171326</td><td>2267879000.0</td><td>0.185611</td><td>0.290594</td></tr><tr><td>600031</td><td>2025-06-30</td><td>按产品分类</td><td>混凝土机械</td><td>7440916000</td><td>0.167085</td><td>5738522000.0</td><td>0.17758</td><td>1702394000.0</td><td>0.13933</td><td>0.228788</td></tr><tr><td>600031</td><td>2025-06-30</td><td>按产品分类</td><td>其他</td><td>7408776000</td><td>0.166364</td><td>6069846000.0</td><td>0.187833</td><td>1338930000.0</td><td>0.109583</td><td>0.180722</td></tr><tr><td>600031</td><td>2025-06-30</td><td>按产品分类</td><td>路面机械</td><td>2158602000</td><td>0.048471</td><td>1556024000.0</td><td>0.048151</td><td>602578000.0</td><td>0.049317</td><td>0.279152</td></tr><tr><td>600031</td><td>2025-06-30</td><td>按产品分类</td><td>桩工机械</td><td>1340919000</td><td>0.03011</td><td>947167000.0</td><td>0.02931</td><td>393752000.0</td><td>0.032226</td><td>0.293643</td></tr><tr><td>600031</td><td>2025-06-30</td><td>按产品分类</td><td>其他(补充)</td><td>883171000</td><td>0.019832</td><td>698748000.0</td><td>0.021623</td><td>184423000.0</td><td>0.015094</td><td>0.208819</td></tr><tr><td>600031</td><td>2025-06-30</td><td>按地区分类</td><td>国际</td><td>26490506000</td><td>0.594843</td><td>18224635000.0</td><td>0.563965</td><td>8265871000.0</td><td>0.676507</td><td>0.312031</td></tr><tr><td>600031</td><td>2025-06-30</td><td>按地区分类</td><td>国内</td><td>18043138000</td><td>0.405157</td><td>14090552000.0</td><td>0.436035</td><td>3952586000.0</td><td>0.323493</td><td>0.219063</td></tr><tr><td>600031</td><td>2025-03-31</td><td>按行业分类</td><td>挖掘机械</td><td>8685000000</td><td>0.410119</td><td>6030000000.0</td><td>0.330347</td><td>2655000000.0</td><td>0.908239</td><td>0.305699</td></tr><tr><td>600031</td><td>2025-03-31</td><td>按行业分类</td><td>起重机械</td><td>3584000000</td><td>0.169242</td><td>2567000000.0</td><td>0.14063</td><td>1017000000.0</td><td>0.347902</td><td>0.283761</td></tr><tr><td>600031</td><td>2025-03-31</td><td>按行业分类</td><td>其他</td><td>3446000000</td><td>0.162725</td><td>46000000.0</td><td>0.00252</td><td>3400000000.0</td><td>1.163093</td><td>0.986651</td></tr><tr><td>600031</td><td>2025-03-31</td><td>按行业分类</td><td>混凝土机械</td><td>3381000000</td><td>0.159656</td><td>2588000000.0</td><td>0.141781</td><td>793000000.0</td><td>0.271274</td><td>0.234546</td></tr><tr><td>600031</td><td>2025-03-31</td><td>按行业分类</td><td>路面机械</td><td>900000000</td><td>0.042499</td><td>638000000.0</td><td>0.034952</td><td>262000000.0</td><td>0.089627</td><td>0.291111</td></tr><tr><td>600031</td><td>2025-03-31</td><td>按行业分类</td><td>桩工机械</td><td>635000000</td><td>0.029986</td><td>427000000.0</td><td>0.023393</td><td>208000000.0</td><td>0.071154</td><td>0.327559</td></tr><tr><td>600031</td><td>2025-03-31</td><td>按行业分类</td><td>其他主营业务</td><td>417770000</td><td>0.019728</td><td>3141530000.0</td><td>0.172105</td><td>-2723760000.0</td><td>-0.931761</td><td>-6.51976</td></tr><tr><td>600031</td><td>2025-03-31</td><td>按行业分类</td><td>金融服务</td><td>128000000</td><td>0.006044</td><td>2816000000.0</td><td>0.154272</td><td>-2688000000.0</td><td>-0.919528</td><td>-21.0</td></tr><tr><td>600031</td><td>2025-03-31</td><td>按产品分类</td><td>挖掘机械</td><td>8685000000</td><td>0.410119</td><td>6030000000.0</td><td>0.330347</td><td>2655000000.0</td><td>0.908239</td><td>0.305699</td></tr><tr><td>600031</td><td>2025-03-31</td><td>按产品分类</td><td>起重机械</td><td>3584000000</td><td>0.169242</td><td>2567000000.0</td><td>0.14063</td><td>1017000000.0</td><td>0.347902</td><td>0.283761</td></tr><tr><td>600031</td><td>2025-03-31</td><td>按产品分类</td><td>其他</td><td>3446000000</td><td>0.162725</td><td>46000000.0</td><td>0.00252</td><td>3400000000.0</td><td>1.163093</td><td>0.986651</td></tr><tr><td>600031</td><td>2025-03-31</td><td>按产品分类</td><td>混凝土机械</td><td>3381000000</td><td>0.159656</td><td>2588000000.0</td><td>0.141781</td><td>793000000.0</td><td>0.271274</td><td>0.234546</td></tr><tr><td>600031</td><td>2025-03-31</td><td>按产品分类</td><td>路面机械</td><td>900000000</td><td>0.042499</td><td>638000000.0</td><td>0.034952</td><td>262000000.0</td><td>0.089627</td><td>0.291111</td></tr><tr><td>600031</td><td>2025-03-31</td><td>按产品分类</td><td>桩工机械</td><td>635000000</td><td>0.029986</td><td>427000000.0</td><td>0.023393</td><td>208000000.0</td><td>0.071154</td><td>0.327559</td></tr><tr><td>600031</td><td>2025-03-31</td><td>按产品分类</td><td>其他主营业务</td><td>417770000</td><td>0.019728</td><td>3141530000.0</td><td>0.172105</td><td>-2723760000.0</td><td>-0.931761</td><td>-6.51976</td></tr><tr><td>600031</td><td>2025-03-31</td><td>按产品分类</td><td>金融服务</td><td>128000000</td><td>0.006044</td><td>2816000000.0</td><td>0.154272</td><td>-2688000000.0</td><td>-0.919528</td><td>-21.0</td></tr><tr><td>600031</td><td>2024-12-31</td><td>按行业分类</td><td>工程机械行业</td><td>75831195000</td><td>0.975028</td><td>55640721000.0</td><td>0.972452</td><td>20190474000.0</td><td>0.982197</td><td>0.266256</td></tr><tr><td>600031</td><td>2024-12-31</td><td>按行业分类</td><td>其他(补充)</td><td>1942196000</td><td>0.024972</td><td>1576238000.0</td><td>0.027548</td><td>365958000.0</td><td>0.017803</td><td>0.188425</td></tr><tr><td>600031</td><td>2024-12-31</td><td>按产品分类</td><td>挖掘机械</td><td>30373600000</td><td>0.39054</td><td>20707554000.0</td><td>0.361913</td><td>9666046000.0</td><td>0.47022</td><td>0.318238</td></tr><tr><td>600031</td><td>2024-12-31</td><td>按产品分类</td><td>混凝土机械</td><td>14368034000</td><td>0.184742</td><td>11420461000.0</td><td>0.199599</td><td>2947573000.0</td><td>0.143389</td><td>0.205148</td></tr><tr><td>600031</td><td>2024-12-31</td><td>按产品分类</td><td>起重机械</td><td>13115027000</td><td>0.168631</td><td>9544241000.0</td><td>0.166808</td><td>3570786000.0</td><td>0.173707</td><td>0.272267</td></tr><tr><td>600031</td><td>2024-12-31</td><td>按产品分类</td><td>其他</td><td>12897238000</td><td>0.165831</td><td>10396429000.0</td><td>0.181702</td><td>2500809000.0</td><td>0.121656</td><td>0.193903</td></tr><tr><td>600031</td><td>2024-12-31</td><td>按产品分类</td><td>路面机械</td><td>3001227000</td><td>0.038589</td><td>2175902000.0</td><td>0.038029</td><td>825325000.0</td><td>0.040149</td><td>0.274996</td></tr><tr><td>600031</td><td>2024-12-31</td><td>按产品分类</td><td>桩工机械</td><td>2076069000</td><td>0.026694</td><td>1396134000.0</td><td>0.024401</td><td>679935000.0</td><td>0.033077</td><td>0.327511</td></tr><tr><td>600031</td><td>2024-12-31</td><td>按产品分类</td><td>其他(补充)</td><td>1942196000</td><td>0.024972</td><td>1576238000.0</td><td>0.027548</td><td>365958000.0</td><td>0.017803</td><td>0.188425</td></tr><tr><td>600031</td><td>2024-12-31</td><td>按地区分类</td><td>国际</td><td>48513233000</td><td>0.623777</td><td>34092728000.0</td><td>0.59585</td><td>14420505000.0</td><td>0.701508</td><td>0.297249</td></tr><tr><td>600031</td><td>2024-12-31</td><td>按地区分类</td><td>国内</td><td>27317962000</td><td>0.351251</td><td>21547993000.0</td><td>0.376602</td><td>5769969000.0</td><td>0.280689</td><td>0.211215</td></tr><tr><td>600031</td><td>2024-12-31</td><td>按地区分类</td><td>其他(补充)</td><td>1942196000</td><td>0.024972</td><td>1576238000.0</td><td>0.027548</td><td>365958000.0</td><td>0.017803</td><td>0.188425</td></tr><tr><td>600031</td><td>2024-06-30</td><td>按行业分类</td><td>工程机械行业</td><td>37829951000</td><td>0.976555</td><td>27107478000.0</td><td>0.975164</td><td>10722473000.0</td><td>0.980089</td><td>0.283439</td></tr><tr><td>600031</td><td>2024-06-30</td><td>按行业分类</td><td>其他(补充)</td><td>908209000</td><td>0.023445</td><td>690380000.0</td><td>0.024836</td><td>217829000.0</td><td>0.019911</td><td>0.239845</td></tr><tr><td>600031</td><td>2024-06-30</td><td>按产品分类</td><td>挖掘机械</td><td>15214791000</td><td>0.39276</td><td>10012421000.0</td><td>0.360187</td><td>5202370000.0</td><td>0.475523</td><td>0.341928</td></tr><tr><td>600031</td><td>2024-06-30</td><td>按产品分类</td><td>混凝土机械</td><td>7957302000</td><td>0.205412</td><td>6193665000.0</td><td>0.222811</td><td>1763637000.0</td><td>0.161206</td><td>0.221638</td></tr><tr><td>600031</td><td>2024-06-30</td><td>按产品分类</td><td>起重机械</td><td>6619742000</td><td>0.170884</td><td>4793930000.0</td><td>0.172457</td><td>1825812000.0</td><td>0.166889</td><td>0.275813</td></tr><tr><td>600031</td><td>2024-06-30</td><td>按产品分类</td><td>其他</td><td>5295062000</td><td>0.136689</td><td>4183587000.0</td><td>0.1505</td><td>1111475000.0</td><td>0.101595</td><td>0.209908</td></tr><tr><td>600031</td><td>2024-06-30</td><td>按产品分类</td><td>路面机械</td><td>1577569000</td><td>0.040724</td><td>1117091000.0</td><td>0.040186</td><td>460478000.0</td><td>0.04209</td><td>0.291891</td></tr><tr><td>600031</td><td>2024-06-30</td><td>按产品分类</td><td>桩工机械</td><td>1165485000</td><td>0.030086</td><td>806784000.0</td><td>0.029023</td><td>358701000.0</td><td>0.032787</td><td>0.30777</td></tr><tr><td>600031</td><td>2024-06-30</td><td>按产品分类</td><td>其他(补充)</td><td>908209000</td><td>0.023445</td><td>690380000.0</td><td>0.024836</td><td>217829000.0</td><td>0.019911</td><td>0.239845</td></tr><tr><td>600031</td><td>2024-06-30</td><td>按地区分类</td><td>国际</td><td>23542198000</td><td>0.607726</td><td>16109547000.0</td><td>0.579525</td><td>7432651000.0</td><td>0.679383</td><td>0.315716</td></tr></tbody></table><p class="truncated">显示前 60 条 / 共 200 条</p>
+        </section>
+        
+        <section class="card" id="ipo_summary">
+          <h2>IPO 信息 <span class="badge">新接入</span></h2>
+          <p class="src">ak.stock_ipo_summary_cninfo · 177 ms · 行数 1</p>
+          <p class="desc">巨潮上市信息：发行价、募资额、保荐机构。</p>
+          <table><thead><tr><th>股票代码</th><th>招股公告日期</th><th>中签率公告日</th><th>每股面值</th><th>总发行数量</th><th>发行前每股净资产</th><th>摊薄发行市盈率</th><th>募集资金净额</th><th>上网发行日期</th><th>上市日期</th><th>发行价格</th><th>发行费用总额</th><th>发行后每股净资产</th><th>上网发行中签率</th><th>主承销商</th></tr></thead><tbody><tr><td>600031</td><td>2003-06-13</td><td></td><td>1.0</td><td>6000.0</td><td>2.62</td><td>13.41</td><td>89989.44</td><td>2003-06-18</td><td>2003-07-03</td><td>15.56</td><td>3370.56</td><td>5.71</td><td></td><td>湘财证券有限责任公司</td></tr></tbody></table>
+        </section>
+        
+        <section class="card" id="concept_tags">
+          <h2>概念题材 <span class="badge">新接入</span></h2>
+          <p class="src">ak.stock_hot_keyword_em · 41 ms · 行数 7</p>
+          <p class="desc">东财个股热门概念关键词（带热度）：直接的 ticker → 概念映射。</p>
+          <table><thead><tr><th>时间</th><th>股票代码</th><th>概念名称</th><th>概念代码</th><th>热度</th></tr></thead><tbody><tr><td>2026-05-12 22:00:00</td><td>SH600031</td><td>工程机械概念</td><td>BK0991</td><td>1284</td></tr><tr><td>2026-05-12 22:00:00</td><td>SH600031</td><td>茅指数</td><td>BK0999</td><td>81</td></tr><tr><td>2026-05-12 22:00:00</td><td>SH600031</td><td>军民融合</td><td>BK0808</td><td>62</td></tr><tr><td>2026-05-12 22:00:00</td><td>SH600031</td><td>机构重仓</td><td>BK0552</td><td>42</td></tr><tr><td>2026-05-12 22:00:00</td><td>SH600031</td><td>新能源车</td><td>BK0900</td><td>21</td></tr><tr><td>2026-05-12 22:00:00</td><td>SH600031</td><td>工业互联</td><td>BK0832</td><td>12</td></tr><tr><td>2026-05-12 22:00:00</td><td>SH600031</td><td>一带一路</td><td>BK0712</td><td>4</td></tr></tbody></table>
+        </section>
+        
+        <section class="card" id="financial_abstract">
+          <h2>财务摘要（同花顺） <span class="badge">新接入</span></h2>
+          <p class="src">ak.stock_financial_abstract_ths · 322 ms · 行数 98</p>
+          <p class="desc">同花顺核心财务指标历史：营收、净利润、扣非、毛利率、ROE、负债率（覆盖所有报告期）。</p>
+          <table><thead><tr><th>报告期</th><th>净利润</th><th>净利润同比增长率</th><th>扣非净利润</th><th>扣非净利润同比增长率</th><th>营业总收入</th><th>营业总收入同比增长率</th><th>基本每股收益</th><th>每股净资产</th><th>每股资本公积金</th><th>每股未分配利润</th><th>每股经营现金流</th><th>销售净利率</th><th>销售毛利率</th><th>净资产收益率</th><th>净资产收益率-摊薄</th><th>营业周期</th><th>存货周转率</th><th>存货周转天数</th><th>应收账款周转天数</th><th>流动比率</th><th>速动比率</th><th>保守速动比率</th><th>产权比率</th><th>资产负债率</th></tr></thead><tbody><tr><td>2000-12-31</td><td>5995.07万</td><td>False</td><td>False</td><td>False</td><td>3.93亿</td><td>False</td><td>False</td><td>0.94</td><td>False</td><td>-0.06</td><td>False</td><td>15.27%</td><td>46.80%</td><td>False</td><td>35.35%</td><td>434.36</td><td>1.11</td><td>323.57</td><td>110.79</td><td>1.07</td><td>0.52</td><td>0.82</td><td>2.58</td><td>72.05%</td></tr><tr><td>2001-12-31</td><td>9124.61万</td><td>52.20%</td><td>False</td><td>False</td><td>5.50亿</td><td>40.18%</td><td>False</td><td>1.45</td><td>0.0002</td><td>0.37</td><td>0.58</td><td>16.58%</td><td>51.37%</td><td>False</td><td>34.98%</td><td>352.38</td><td>1.34</td><td>268.60</td><td>83.79</td><td>1.16</td><td>0.50</td><td>0.86</td><td>1.60</td><td>61.52%</td></tr><tr><td>2002-06-30</td><td>7955.64万</td><td>False</td><td>False</td><td>False</td><td>4.09亿</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>19.42%</td><td>50.69%</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td></tr><tr><td>2002-09-30</td><td>1.16亿</td><td>False</td><td>False</td><td>False</td><td>6.15亿</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>18.85%</td><td>51.15%</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td></tr><tr><td>2002-12-31</td><td>2.10亿</td><td>129.99%</td><td>2.09亿</td><td>False</td><td>9.85亿</td><td>78.90%</td><td>1.1700</td><td>2.62</td><td>0.0033</td><td>1.36</td><td>0.39</td><td>21.24%</td><td>51.09%</td><td>57.33%</td><td>44.53%</td><td>301.75</td><td>1.47</td><td>244.15</td><td>57.60</td><td>1.20</td><td>0.39</td><td>0.67</td><td>1.44</td><td>58.87%</td></tr><tr><td>2003-03-31</td><td>4781.68万</td><td>False</td><td>False</td><td>False</td><td>2.95亿</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>16.21%</td><td>47.42%</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td><td>False</td></tr><tr><td>2003-06-30</td><td>1.50亿</td><td>88.85%</td><td>1.48亿</td><td>False</td><td>9.27亿</td><td>126.46%</td><td>False</td><td>6.34</td><td>3.50</td><td>1.65</td><td>0.12</td><td>16.19%</td><td>42.95%</td><td>False</td><td>9.87%</td><td>231.63</td><td>0.97</td><td>185.30</td><td>46.33</td><td>2.29</td><td>1.42</td><td>1.79</td><td>0.65</td><td>39.34%</td></tr><tr><td>2003-09-30</td><td>2.31亿</td><td>99.59%</td><td>False</td><td>False</td><td>15.36亿</td><td>149.92%</td><td>False</td><td>6.68</td><td>3.50</td><td>1.98</td><td>0.21</td><td>15.05%</td><td>41.08%</td><td>False</td><td>14.42%</td><td>220.68</td><td>1.53</td><td>176.63</td><td>44.05</td><td>2.33</td><td>1.08</td><td>1.55</td><td>0.48</td><td>32.54%</td></tr><tr><td>2003-12-31</td><td>3.25亿</td><td>54.77%</td><td>3.22亿</td><td>54.47%</td><td>20.88亿</td><td>112.08%</td><td>1.5470</td><td>7.09</td><td>3.52</td><td>2.18</td><td>0.30</td><td>15.55%</td><td>41.13%</td><td>29.97%</td><td>19.10%</td><td>209.55</td><td>2.28</td><td>157.92</td><td>51.63</td><td>1.95</td><td>1.04</td><td>1.48</td><td>0.58</td><td>36.47%</td></tr><tr><td>2004-03-31</td><td>7224.57万</td><td>51.09%</td><td>7232.44万</td><td>False</td><td>5.82亿</td><td>97.67%</td><td>False</td><td>7.39</td><td>3.52</td><td>2.48</td><td>-0.83</td><td>13.05%</td><td>35.38%</td><td>False</td><td>4.08%</td><td>263.95</td><td>0.46</td><td>193.92</td><td>70.03</td><td>1.59</td><td>0.74</td><td>1.05</td><td>0.89</td><td>46.80%</td></tr><tr><td>2004-06-30</td><td>2.04亿</td><td>36.00%</td><td>2.10亿</td><td>41.39%</td><td>15.66亿</td><td>68.97%</td><td>0.8510</td><td>7.44</td><td>3.52</td><td>2.54</td><td>-0.79</td><td>13.68%</td><td>32.08%</td><td>11.46%</td><td>11.45%</td><td>195.76</td><td>1.32</td><td>136.49</td><td>59.28</td><td>1.62</td><td>0.82</td><td>1.23</td><td>1.10</td><td>52.02%</td></tr><tr><td>2004-09-30</td><td>2.76亿</td><td>19.47%</td><td>2.73亿</td><td>False</td><td>21.45亿</td><td>39.66%</td><td>False</td><td>7.74</td><td>3.52</td><td>2.83</td><td>-1.46</td><td>13.53%</td><td>31.85%</td><td>False</td><td>14.87%</td><td>232.27</td><td>1.64</td><td>164.93</td><td>67.34</td><td>1.54</td><td>0.78</td><td>1.12</td><td>1.31</td><td>56.02%</td></tr></tbody></table><p class="truncated">显示前 12 条 / 共 98 条</p>
+        </section>
+        
+        <section class="card" id="profit_forecast">
+          <h2>盈利预测 <span class="badge">新接入</span></h2>
+          <p class="src">ak.stock_profit_forecast_ths · 258 ms · 行数 3</p>
+          <p class="desc">机构盈利预测：参与机构数、未来 2-3 年 EPS 的最大/均值/最小，以及行业平均。</p>
+          <table><thead><tr><th>年度</th><th>预测机构数</th><th>最小值</th><th>均值</th><th>最大值</th><th>行业平均数</th></tr></thead><tbody><tr><td>2026</td><td>27</td><td>1.11</td><td>1.17</td><td>1.28</td><td>2.33</td></tr><tr><td>2027</td><td>27</td><td>1.27</td><td>1.45</td><td>1.58</td><td>3.01</td></tr><tr><td>2028</td><td>24</td><td>1.66</td><td>1.76</td><td>1.98</td><td>3.8</td></tr></tbody></table>
+        </section>
+        
+        <section class="card" id="share_change">
+          <h2>股本变动 <span class="badge">新接入</span></h2>
+          <p class="src">ak.stock_share_change_cninfo · 226 ms · 行数 14</p>
+          <p class="desc">巨潮股本变动：每次配股 / 送转 / 解禁 / 增发后的股本结构快照。</p>
+          <table><thead><tr><th>证券简称</th><th>机构名称</th><th>境外法人持股</th><th>证券投资基金持股</th><th>国家持股-受限</th><th>国有法人持股</th><th>配售法人股</th><th>发起人股份</th><th>未流通股份</th><th>其中：境外自然人持股</th><th>其他流通受限股份</th><th>其他流通股</th><th>外资持股-受限</th><th>内部职工股</th><th>境外上市外资股-H股</th><th>其中：境内法人持股</th><th>自然人持股</th><th>人民币普通股</th><th>国有法人持股-受限</th><th>一般法人持股</th><th>控股股东、实际控制人</th><th>其中：限售H股</th><th>变动原因</th><th>公告日期</th><th>境内法人持股</th><th>证券代码</th><th>变动日期</th><th>战略投资者持股</th><th>国家持股</th><th>其中：限售B股</th><th>其他未流通股</th><th>流通受限股份</th><th>优先股</th><th>高管股</th><th>总股本</th><th>其中：限售高管股</th><th>转配股</th><th>境内上市外资股-B股</th><th>其中：境外法人持股</th><th>募集法人股</th><th>已流通股份</th><th>其中：境内自然人持股</th><th>其他内资持股-受限</th><th>变动原因编码</th></tr></thead><tbody><tr><td>三一重工</td><td>三一重工股份有限公司</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>2238.625</td><td></td><td></td><td></td><td></td><td></td><td></td><td>846421.5837</td><td></td><td></td><td></td><td></td><td>定期报告</td><td>2023-08-31</td><td></td><td>600031</td><td>2023-06-30</td><td></td><td></td><td></td><td></td><td>2238.625</td><td></td><td></td><td>848660.2087</td><td></td><td></td><td></td><td></td><td></td><td>846421.5837</td><td>2238.625</td><td>2238.625</td><td>015019</td></tr><tr><td>三一重工</td><td>三一重工股份有限公司</td><td></td><td></td><td></td><td></td><td></td><td>0.0</td><td>0.0</td><td></td><td>2152.44</td><td></td><td>0.0</td><td></td><td></td><td></td><td></td><td>846421.5837</td><td></td><td></td><td></td><td></td><td>股份回购</td><td>2023-11-13</td><td></td><td>600031</td><td>2023-11-15</td><td></td><td></td><td></td><td></td><td>2152.44</td><td></td><td></td><td>848574.0237</td><td></td><td></td><td></td><td></td><td></td><td>846421.5837</td><td>2152.44</td><td>2152.44</td><td>015016</td></tr><tr><td>三一重工</td><td>三一重工股份有限公司</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>2152.44</td><td></td><td></td><td></td><td></td><td></td><td></td><td>846421.5837</td><td></td><td></td><td></td><td></td><td>定期报告</td><td>2024-04-29</td><td></td><td>600031</td><td>2023-12-31</td><td></td><td></td><td></td><td></td><td>2152.44</td><td></td><td></td><td>848574.0237</td><td></td><td></td><td></td><td></td><td></td><td>846421.5837</td><td>2152.44</td><td>2152.44</td><td>015019</td></tr><tr><td>三一重工</td><td>三一重工股份有限公司</td><td></td><td></td><td></td><td></td><td></td><td>0.0</td><td>0.0</td><td></td><td>2152.44</td><td></td><td>0.0</td><td></td><td></td><td></td><td></td><td>846421.5837</td><td></td><td></td><td></td><td></td><td>其他</td><td>2024-06-29</td><td></td><td>600031</td><td>2024-06-28</td><td></td><td></td><td></td><td></td><td>2152.44</td><td></td><td></td><td>848574.0237</td><td></td><td></td><td></td><td></td><td></td><td>846421.5837</td><td>2152.44</td><td>2152.44</td><td>015999</td></tr><tr><td>三一重工</td><td>三一重工股份有限公司</td><td></td><td></td><td></td><td></td><td></td><td>0.0</td><td>0.0</td><td></td><td>2152.44</td><td></td><td>0.0</td><td></td><td></td><td></td><td></td><td>846421.5837</td><td></td><td></td><td></td><td></td><td>定期报告</td><td>2024-08-30</td><td></td><td>600031</td><td>2024-06-30</td><td></td><td></td><td></td><td></td><td>2152.44</td><td></td><td></td><td>848574.0237</td><td></td><td></td><td></td><td></td><td></td><td>846421.5837</td><td>2152.44</td><td>2152.44</td><td>015019</td></tr><tr><td>三一重工</td><td>三一重工股份有限公司</td><td></td><td></td><td></td><td></td><td></td><td>0.0</td><td>0.0</td><td></td><td>1076.22</td><td></td><td>0.0</td><td></td><td></td><td></td><td></td><td>846421.5837</td><td></td><td></td><td></td><td></td><td>股份回购</td><td>2024-07-17</td><td></td><td>600031</td><td>2024-07-19</td><td></td><td></td><td></td><td></td><td>1076.22</td><td></td><td></td><td>847497.8037</td><td></td><td></td><td></td><td></td><td></td><td>846421.5837</td><td>1076.22</td><td>1076.22</td><td>015016</td></tr><tr><td>三一重工</td><td>三一重工股份有限公司</td><td></td><td></td><td></td><td></td><td></td><td>0.0</td><td>0.0</td><td></td><td>1076.22</td><td></td><td>0.0</td><td></td><td></td><td></td><td></td><td>846421.5837</td><td></td><td></td><td></td><td></td><td>定期报告</td><td>2025-04-18</td><td></td><td>600031</td><td>2024-12-31</td><td></td><td></td><td></td><td></td><td>1076.22</td><td></td><td></td><td>847497.8037</td><td></td><td></td><td></td><td></td><td></td><td>846421.5837</td><td>1076.22</td><td>1076.22</td><td>015019</td></tr><tr><td>三一重工</td><td>三一重工股份有限公司</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>58.8</td><td></td><td></td><td></td><td></td><td></td><td></td><td>847439.0037</td><td></td><td></td><td></td><td></td><td>激励股份解禁</td><td>2025-06-17</td><td></td><td>600031</td><td>2025-06-20</td><td></td><td></td><td></td><td></td><td>58.8</td><td></td><td></td><td>847497.8037</td><td></td><td></td><td></td><td></td><td></td><td>847439.0037</td><td>58.8</td><td>58.8</td><td>015998</td></tr><tr><td>三一重工</td><td>三一重工股份有限公司</td><td></td><td></td><td></td><td></td><td></td><td>0.0</td><td>0.0</td><td></td><td>58.8</td><td></td><td>0.0</td><td></td><td></td><td></td><td></td><td>847439.0037</td><td></td><td></td><td></td><td></td><td>定期报告</td><td>2025-08-22</td><td></td><td>600031</td><td>2025-06-30</td><td></td><td></td><td></td><td></td><td>58.8</td><td></td><td></td><td>847497.8037</td><td></td><td></td><td></td><td></td><td></td><td>847439.0037</td><td>58.8</td><td>58.8</td><td>015019</td></tr><tr><td>三一重工</td><td>三一重工股份有限公司</td><td></td><td></td><td></td><td></td><td></td><td>0.0</td><td>0.0</td><td></td><td></td><td></td><td>0.0</td><td></td><td></td><td></td><td></td><td>847439.0037</td><td></td><td></td><td></td><td></td><td>股份回购</td><td>2025-08-04</td><td></td><td>600031</td><td>2025-08-06</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>847439.0037</td><td></td><td></td><td></td><td></td><td></td><td>847439.0037</td><td></td><td>0.0</td><td>015016</td></tr><tr><td>三一重工</td><td>三一重工股份有限公司</td><td></td><td></td><td></td><td></td><td></td><td>0.0</td><td>0.0</td><td></td><td></td><td></td><td>0.0</td><td></td><td>63159.88</td><td></td><td></td><td>847439.0037</td><td></td><td></td><td></td><td></td><td>H股上市</td><td>2025-10-29</td><td></td><td>600031</td><td>2025-10-28</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>910598.8837</td><td></td><td></td><td></td><td></td><td></td><td>910598.8837</td><td></td><td>0.0</td><td>015003</td></tr><tr><td>三一重工</td><td>三一重工股份有限公司</td><td></td><td></td><td></td><td></td><td></td><td>0.0</td><td>0.0</td><td></td><td></td><td></td><td>0.0</td><td></td><td>72061.44</td><td></td><td></td><td>847439.0037</td><td></td><td></td><td></td><td></td><td>超额配售</td><td>2025-11-25</td><td></td><td>600031</td><td>2025-11-26</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>919500.4437</td><td></td><td></td><td></td><td></td><td></td><td>919500.4437</td><td></td><td>0.0</td><td>015029</td></tr><tr><td>三一重工</td><td>三一重工股份有限公司</td><td></td><td></td><td></td><td></td><td></td><td>0.0</td><td>0.0</td><td></td><td></td><td></td><td>0.0</td><td></td><td>72061.44</td><td></td><td></td><td>847439.0037</td><td></td><td></td><td></td><td></td><td>定期报告</td><td>2026-03-31</td><td></td><td>600031</td><td>2025-12-31</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>919500.4437</td><td></td><td></td><td></td><td></td><td></td><td>919500.4437</td><td></td><td>0.0</td><td>015019</td></tr><tr><td>三一重工</td><td>三一重工股份有限公司</td><td></td><td></td><td></td><td></td><td></td><td>0.0</td><td>0.0</td><td></td><td></td><td></td><td>0.0</td><td></td><td>72061.44</td><td></td><td></td><td>847439.0037</td><td></td><td></td><td></td><td></td><td>其他</td><td>2026-04-03</td><td></td><td>600031</td><td>2026-04-01</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>919500.4437</td><td></td><td></td><td></td><td></td><td></td><td>919500.4437</td><td></td><td>0.0</td><td>015999</td></tr></tbody></table>
+        </section>
+        
+        <section class="card" id="shareholder_count">
+          <h2>股东户数变化 <span class="badge">新接入</span></h2>
+          <p class="src">ak.stock_zh_a_gdhs_detail_em · 411 ms · 行数 57</p>
+          <p class="desc">东财股东户数季度变化：户数、户均持股、区间股价表现。</p>
+          <table><thead><tr><th>股东户数统计截止日</th><th>区间涨跌幅</th><th>股东户数-本次</th><th>股东户数-上次</th><th>股东户数-增减</th><th>股东户数-增减比例</th><th>户均持股市值</th><th>户均持股数量</th><th>总市值</th><th>总股本</th><th>股本变动</th><th>股本变动原因</th><th>股东户数公告日期</th><th>代码</th><th>名称</th></tr></thead><tbody><tr><td>2013-03-31</td><td>-5.19357885</td><td>508371</td><td>501672</td><td>6699</td><td>1.335334640961</td><td>150421.051813498</td><td>14982.176475448</td><td>76469700531.48</td><td>7616504037</td><td>22797900</td><td>股权激励</td><td>2013-04-27</td><td>600031</td><td>三一重工</td></tr><tr><td>2013-04-22</td><td>3.88446215</td><td>510924</td><td>508371</td><td>2553</td><td>0.502192296571</td><td>155483.275606372</td><td>14907.313097447</td><td>79440137105.91</td><td>7616504037</td><td>0</td><td></td><td>2013-04-27</td><td>600031</td><td>三一重工</td></tr><tr><td>2013-06-30</td><td>-27.99616491</td><td>514511</td><td>510924</td><td>3587</td><td>0.702061363334</td><td>111173.415763453</td><td>14803.3842561189</td><td>57199945317.87</td><td>7616504037</td><td>0</td><td></td><td>2013-08-31</td><td>600031</td><td>三一重工</td></tr><tr><td>2013-09-30</td><td>3.64412773</td><td>513421</td><td>514511</td><td>-1090</td><td>-0.211851641656</td><td>111557.786608339</td><td>14834.8120489812</td><td>57276110358.24</td><td>7616504037</td><td>0</td><td></td><td>2013-10-31</td><td>600031</td><td>三一重工</td></tr><tr><td>2013-12-31</td><td>-14.62765957</td><td>508754</td><td>513421</td><td>-4667</td><td>-0.909000605741</td><td>96113.1625845497</td><td>14970.8975988395</td><td>48897955917.54</td><td>7616504037</td><td>0</td><td></td><td>2014-04-30</td><td>600031</td><td>三一重工</td></tr><tr><td>2014-03-31</td><td>-13.39563863</td><td>502360</td><td>508754</td><td>-6394</td><td>-1.256796015363</td><td>84297.6400304961</td><td>15161.4460486504</td><td>42347762445.72</td><td>7616504037</td><td>0</td><td></td><td>2014-04-30</td><td>600031</td><td>三一重工</td></tr><tr><td>2014-04-23</td><td>0.35971223</td><td>498905</td><td>502360</td><td>-3455</td><td>-0.687753802054</td><td>85186.7440223289</td><td>15266.4415810625</td><td>42500092526.46</td><td>7616504037</td><td>0</td><td></td><td>2014-04-30</td><td>600031</td><td>三一重工</td></tr><tr><td>2014-06-30</td><td>-9.67741935</td><td>493144</td><td>498905</td><td>-5761</td><td>-1.154728856195</td><td>77841.7264459874</td><td>15444.7869932515</td><td>38387180346.48</td><td>7616504037</td><td>0</td><td></td><td>2014-08-30</td><td>600031</td><td>三一重工</td></tr><tr><td>2014-09-30</td><td>18.50649771</td><td>483554</td><td>493144</td><td>-9590</td><td>-1.944665249907</td><td>92143.8942009579</td><td>15751.0930258048</td><td>44556548616.45</td><td>7616504037</td><td>0</td><td></td><td>2014-10-31</td><td>600031</td><td>三一重工</td></tr><tr><td>2014-12-31</td><td>70.5982906</td><td>498633</td><td>483554</td><td>15079</td><td>3.118369406519</td><td>152442.197546612</td><td>15274.7692932477</td><td>76012710289.26</td><td>7616504037</td><td>0</td><td></td><td>2015-04-21</td><td>600031</td><td>三一重工</td></tr><tr><td>2015-03-31</td><td>1.50300601</td><td>585453</td><td>498633</td><td>86820</td><td>17.411603323486</td><td>131787.156090771</td><td>13009.5909270257</td><td>77155185894.81</td><td>7616504037</td><td>0</td><td></td><td>2015-04-22</td><td>600031</td><td>三一重工</td></tr><tr><td>2015-04-14</td><td>5.33070089</td><td>604345</td><td>585453</td><td>18892</td><td>3.22690292816</td><td>134473.021328529</td><td>12602.9073410056</td><td>81268098074.79</td><td>7616504037</td><td>0</td><td></td><td>2015-04-21</td><td>600031</td><td>三一重工</td></tr><tr><td>2015-06-30</td><td>-8.8279274</td><td>615019</td><td>604345</td><td>10674</td><td>1.766209698103</td><td>120002.673280874</td><td>12384.1768091718</td><td>73803924118.53</td><td>7616504037</td><td>0</td><td></td><td>2015-08-31</td><td>600031</td><td>三一重工</td></tr><tr><td>2015-09-30</td><td>-34.36532508</td><td>569517</td><td>615019</td><td>-45502</td><td>-7.398470616355</td><td>85056.224266036</td><td>13373.6201676157</td><td>48440965675.32</td><td>7616504037</td><td>0</td><td></td><td>2015-10-31</td><td>600031</td><td>三一重工</td></tr><tr><td>2015-12-31</td><td>3.4591195</td><td>509973</td><td>569517</td><td>-59544</td><td>-10.455175174753</td><td>98273.0390892459</td><td>14935.1123235936</td><td>50116596563.46</td><td>7616504037</td><td>0</td><td></td><td>2016-04-29</td><td>600031</td><td>三一重工</td></tr><tr><td>2016-03-31</td><td>-13.52583587</td><td>495991</td><td>509973</td><td>-13982</td><td>-2.741713777004</td><td>87376.3999155832</td><td>15356.1335528266</td><td>43337907970.53</td><td>7616504037</td><td>0</td><td></td><td>2016-04-29</td><td>600031</td><td>三一重工</td></tr><tr><td>2016-06-30</td><td>-11.77504394</td><td>484706</td><td>495991</td><td>-11285</td><td>-2.275242897553</td><td>78882.5602854927</td><td>15713.657427389</td><td>38234850265.74</td><td>7616504037</td><td>0</td><td></td><td>2016-08-30</td><td>600031</td><td>三一重工</td></tr><tr><td>2016-09-30</td><td>9.16336056</td><td>451598</td><td>484706</td><td>-33108</td><td>-6.830532322686</td><td>92186.8784341162</td><td>16853.1770446282</td><td>41631409927.09</td><td>7610861047</td><td>-5642990</td><td>债转股,资产重组,股权激励</td><td>2016-10-31</td><td>600031</td><td>三一重工</td></tr><tr><td>2016-12-31</td><td>11.51736746</td><td>428822</td><td>451598</td><td>-22776</td><td>-5.043423575835</td><td>108264.623519083</td><td>17748.3163713615</td><td>46426252386.7</td><td>7610868523</td><td>7476</td><td>债转股</td><td>2017-04-28</td><td>600031</td><td>三一重工</td></tr><tr><td>2017-03-31</td><td>18.03278689</td><td>408586</td><td>428822</td><td>-20236</td><td>-4.718974306356</td><td>134946.508493194</td><td>18742.5706240547</td><td>55137254119.2</td><td>7657951961</td><td>47083438</td><td>债转股,股权激励</td><td>2017-04-28</td><td>600031</td><td>三一重工</td></tr></tbody></table><p class="truncated">显示前 20 条 / 共 57 条</p>
+        </section>
+        
+        <section class="card" id="shareholder_change">
+          <h2>大股东增减持 <span class="badge">新接入</span></h2>
+          <p class="src">ak.stock_shareholder_change_ths · 305 ms · 行数 100</p>
+          <p class="desc">同花顺大股东变动公告：股东、变动股数、均价、剩余持股。</p>
+          <table><thead><tr><th>公告日期</th><th>变动股东</th><th>变动数量</th><th>交易均价</th><th>剩余股份总数</th><th>变动期间</th><th>变动途径</th></tr></thead><tbody><tr><td>2005-08-20</td><td>三一集团有限公司</td><td>增持1031.75万</td><td>未披露</td><td>未披露</td><td>2005.06.17-2005.08.17</td><td>二级市场</td></tr><tr><td>2006-06-13</td><td>三一集团有限公司,三一汽车制造有限公司</td><td>增持363.32万</td><td>未披露</td><td>未披露</td><td>2006.06.01-2006.06.09</td><td>二级市场</td></tr><tr><td>2006-06-13</td><td>三一集团有限公司,三一汽车制造有限公司</td><td>增持82.95万</td><td>未披露</td><td>未披露</td><td>2006.05.08-2006.05.31</td><td>二级市场</td></tr><tr><td>2006-06-13</td><td>三一集团有限公司,三一汽车制造有限公司</td><td>增持633.01万</td><td>未披露</td><td>未披露</td><td>2005.08.18-2006.02.28</td><td>二级市场</td></tr><tr><td>2006-06-13</td><td>三一集团有限公司,三一汽车制造有限公司</td><td>增持436.89万</td><td>未披露</td><td>未披露</td><td>2006.03.01-2006.03.31</td><td>二级市场</td></tr><tr><td>2006-06-13</td><td>三一集团有限公司,三一汽车制造有限公司</td><td>减持147.91万</td><td>未披露</td><td>未披露</td><td>2006.04.03-2006.04.28</td><td>二级市场</td></tr><tr><td>2006-07-07</td><td>三一集团有限公司,三一汽车制造有限公司</td><td>增持295.73万</td><td>未披露</td><td>未披露</td><td>2006.06.12-2006.07.06</td><td>二级市场</td></tr><tr><td>2007-02-26</td><td>三一汽车制造有限公司</td><td>减持743.81万</td><td>未披露</td><td>518.45万</td><td>2007.01.22-2007.02.16</td><td>二级市场</td></tr><tr><td>2007-02-26</td><td>三一重机有限公司</td><td>减持304.72万</td><td>37.8500</td><td>286.48万</td><td>2007.01.22-2007.02.16</td><td>二级市场</td></tr><tr><td>2007-02-26</td><td>三一集团有限公司</td><td>减持601.59万</td><td>未披露</td><td>3.15亿</td><td>2007.01.22-2007.02.16</td><td>二级市场</td></tr><tr><td>2007-08-22</td><td>三一汽车制造有限公司</td><td>减持312.43万</td><td>未披露</td><td>724.47万</td><td>2007.04.12-2007.08.20</td><td>二级市场</td></tr><tr><td>2007-08-22</td><td>三一重机有限公司</td><td>减持286.48万</td><td>未披露</td><td>0.00</td><td>2007.04.12-2007.08.20</td><td>二级市场</td></tr><tr><td>2007-08-22</td><td>三一集团有限公司</td><td>减持458.00万</td><td>未披露</td><td>6.16亿</td><td>2007.04.12-2007.08.20</td><td>二级市场</td></tr><tr><td>2007-11-01</td><td>三一汽车制造有限公司</td><td>减持724.57万</td><td>未披露</td><td>0.00</td><td>2007.08.21-2007.10.31</td><td>二级市场</td></tr><tr><td>2007-11-01</td><td>三一集团有限公司</td><td>减持493.39万</td><td>未披露</td><td>6.11亿</td><td>2007.08.21-2007.10.31</td><td>二级市场</td></tr><tr><td>2010-06-30</td><td>三一集团有限公司</td><td>增持208.30万</td><td>17.9300</td><td>13.58亿</td><td>2010.06.29-2010.06.29</td><td>二级市场</td></tr><tr><td>2010-10-21</td><td>河南兴华机械制造有限公司</td><td>减持88.96万</td><td>35.5980</td><td>400.00万</td><td>2010.10.12-2010.10.19</td><td>二级市场</td></tr><tr><td>2010-12-29</td><td>三一电气有限责任公司</td><td>增持1073.02万</td><td>未披露</td><td>1073.02万</td><td>-2010.12.28</td><td>二级市场</td></tr><tr><td>2010-12-29</td><td>三一集团有限公司</td><td>增持783.09万</td><td>未披露</td><td>28.54亿</td><td>2010.06.30-2010.12.28</td><td>二级市场</td></tr><tr><td>2011-10-10</td><td>中原特钢股份有限公司</td><td>减持100.00万</td><td>17.7420</td><td>1160.00万</td><td>2011.06.23-2011.06.27</td><td>二级市场</td></tr><tr><td>2011-10-10</td><td>中原特钢股份有限公司</td><td>减持86.77万</td><td>14.9340</td><td>1073.23万</td><td>2011.09.28-2011.09.30</td><td>二级市场</td></tr><tr><td>2012-04-06</td><td>河南兴华机械制造有限公司</td><td>减持100.00万</td><td>12.2880</td><td>700.00万</td><td>2012.03.27-2012.03.30</td><td>二级市场</td></tr><tr><td>2012-04-28</td><td>河南兴华机械制造有限公司</td><td>减持28.00万</td><td>14.4830</td><td>672.00万</td><td>2012.04.18-2012.04.26</td><td>二级市场</td></tr><tr><td>2012-05-31</td><td>河南兴华机械制造有限公司</td><td>减持176.00万</td><td>14.9580</td><td>496.00万</td><td>2012.05.03-2012.05.29</td><td>二级市场</td></tr><tr><td>2012-10-08</td><td>河南兴华机械制造有限公司</td><td>减持296.00万</td><td>10.3070</td><td>200.00万</td><td>2012.08.28-2012.09.28</td><td>二级市场</td></tr><tr><td>2012-12-27</td><td>河南兴华机械制造有限公司</td><td>减持200.00万</td><td>9.9820</td><td>0.00</td><td>2012.10.18-2012.12.25</td><td>二级市场</td></tr><tr><td>2014-12-20</td><td>三一集团有限公司</td><td>减持351.54万</td><td>6.0400</td><td>42.78亿</td><td>2014.09.01-2014.09.01</td><td>大宗交易平台</td></tr><tr><td>2015-04-28</td><td>三一集团有限公司</td><td>减持1.91亿</td><td>未披露</td><td>36.37亿</td><td>2015.04.27-2015.04.27</td><td>大宗交易平台</td></tr><tr><td>2015-06-02</td><td>三一集团有限公司</td><td>减持5056.55万</td><td>未披露</td><td>35.86亿</td><td>2015.04.28-2015.06.01</td><td>二级市场</td></tr><tr><td>2015-07-29</td><td>资产管理计划(三一集团有限公司通过富国资产管理(上海)有限公司的定向资产管理计划增持)</td><td>增持1251.78万</td><td>7.9800</td><td>未披露</td><td>2015.07.20-2015.07.21</td><td>二级市场</td></tr></tbody></table><p class="truncated">显示前 30 条 / 共 100 条</p>
+        </section>
+        
+        <section class="card" id="management_change">
+          <h2>高管变动 <span class="badge">新接入</span></h2>
+          <p class="src">ak.stock_management_change_ths · 226 ms · 行数 142</p>
+          <p class="desc">同花顺高管 / 关联人持股变动记录。</p>
+          <table><thead><tr><th>变动日期</th><th>变动人</th><th>与公司高管关系</th><th>变动数量</th><th>交易均价</th><th>剩余股数</th><th>股份变动途径</th></tr></thead><tbody><tr><td>2007-05-31</td><td>赵想章</td><td>高级管理人员</td><td>增持4.42万</td><td>32.94</td><td>4.42万</td><td>二级市场买卖</td></tr><tr><td>2010-08-23</td><td>赵想章</td><td>董事</td><td>减持2.48万</td><td>25.95</td><td>7.46万</td><td>二级市场买卖</td></tr><tr><td>2013-01-28</td><td>易小刚</td><td>董事</td><td>减持1698.00</td><td>10.92</td><td>1621.00万</td><td>二级市场买卖</td></tr><tr><td>2013-05-10</td><td>赵想章</td><td>董事</td><td>减持5.80万</td><td>9.50</td><td>17.71万</td><td>二级市场买卖</td></tr><tr><td>2014-09-19</td><td>周福贵</td><td>高级管理人员</td><td>减持200.00万</td><td>5.18</td><td>1691.36万</td><td>二级市场买卖</td></tr><tr><td>2014-09-22</td><td>代晴华</td><td>高级管理人员</td><td>增持335.96万</td><td>5.63</td><td>454.42万</td><td>二级市场买卖</td></tr><tr><td>2014-09-23</td><td>代晴华</td><td>高级管理人员</td><td>增持16.86万</td><td>5.60</td><td>471.28万</td><td>二级市场买卖</td></tr><tr><td>2014-09-24</td><td>代晴华</td><td>高级管理人员</td><td>增持17.69万</td><td>5.64</td><td>488.97万</td><td>二级市场买卖</td></tr><tr><td>2014-09-25</td><td>代晴华</td><td>高级管理人员</td><td>增持438.75万</td><td>5.83</td><td>927.72万</td><td>二级市场买卖</td></tr><tr><td>2014-09-26</td><td>代晴华</td><td>高级管理人员</td><td>增持198.88万</td><td>5.74</td><td>1126.60万</td><td>二级市场买卖</td></tr><tr><td>2014-09-29</td><td>代晴华</td><td>高级管理人员</td><td>增持2.94万</td><td>5.85</td><td>1129.54万</td><td>二级市场买卖</td></tr><tr><td>2014-12-02</td><td>周福贵</td><td>高级管理人员</td><td>减持191.36万</td><td>6.78</td><td>1500.00万</td><td>二级市场买卖</td></tr><tr><td>2014-12-10</td><td>易小刚</td><td>董事</td><td>减持357.71万</td><td>8.39</td><td>1357.82万</td><td>二级市场买卖</td></tr><tr><td>2014-12-29</td><td>唐修国</td><td>董事</td><td>减持600.00万</td><td>9.80</td><td>4128.41万</td><td>二级市场买卖</td></tr><tr><td>2014-12-31</td><td>袁金华</td><td>高级管理人员</td><td>减持100.00万</td><td>10.23</td><td>2484.63万</td><td>二级市场买卖</td></tr><tr><td>2015-04-08</td><td>袁金华</td><td>高级管理人员</td><td>减持200.00万</td><td>10.44</td><td>2284.63万</td><td>二级市场买卖</td></tr><tr><td>2015-04-28</td><td>易小刚</td><td>董事</td><td>减持330.00万</td><td>11.09</td><td>1027.82万</td><td>二级市场买卖</td></tr><tr><td>2015-05-04</td><td>梁稳根</td><td>董事</td><td>减持73.50万</td><td>10.68</td><td>2.86亿</td><td>二级市场买卖</td></tr><tr><td>2015-05-07</td><td>代晴华</td><td>高级管理人员</td><td>减持102.00万</td><td>9.65</td><td>1027.54万</td><td>二级市场买卖</td></tr><tr><td>2015-05-26</td><td>易小刚</td><td>董事</td><td>减持9.00万</td><td>12.89</td><td>1018.82万</td><td>二级市场买卖</td></tr><tr><td>2015-05-26</td><td>向文波</td><td>董事</td><td>减持455.00万</td><td>12.81</td><td>3868.12万</td><td>二级市场买卖</td></tr><tr><td>2015-05-26</td><td>唐修国</td><td>董事</td><td>减持998.41万</td><td>12.85</td><td>3130.00万</td><td>二级市场买卖</td></tr><tr><td>2015-05-28</td><td>向文波</td><td>董事</td><td>减持300.00万</td><td>13.33</td><td>3568.12万</td><td>二级市场买卖</td></tr><tr><td>2015-05-28</td><td>周福贵</td><td>高级管理人员</td><td>减持62.50万</td><td>13.63</td><td>1437.50万</td><td>二级市场买卖</td></tr><tr><td>2015-06-01</td><td>周福贵</td><td>高级管理人员</td><td>减持300.50万</td><td>13.26</td><td>1137.00万</td><td>二级市场买卖</td></tr><tr><td>2017-08-30</td><td>谢志霞</td><td>高级管理人员</td><td>增持1.59万</td><td>8.06</td><td>35.00万</td><td>二级市场买卖</td></tr><tr><td>2017-08-31</td><td>谢志霞</td><td>高级管理人员</td><td>增持4200.00</td><td>7.81</td><td>35.42万</td><td>二级市场买卖</td></tr><tr><td>2017-09-22</td><td>谢志霞</td><td>高级管理人员</td><td>增持1500.00</td><td>7.49</td><td>35.57万</td><td>二级市场买卖</td></tr><tr><td>2017-11-02</td><td>谢志霞</td><td>高级管理人员</td><td>增持2000.00</td><td>7.84</td><td>35.77万</td><td>二级市场买卖</td></tr><tr><td>2017-11-10</td><td>谢志霞</td><td>高级管理人员</td><td>减持2.36万</td><td>8.54</td><td>33.41万</td><td>二级市场买卖</td></tr></tbody></table><p class="truncated">显示前 30 条 / 共 142 条</p>
+        </section>
+        
+        <section class="card" id="restricted_release">
+          <h2>限售解禁日历 <span class="badge">新接入</span></h2>
+          <p class="src">ak.stock_restricted_release_queue_em · 289 ms · 行数 5</p>
+          <p class="desc">东财限售解禁排期：解禁日、解禁股东数、解禁数量、占总市值比例。</p>
+          <table><thead><tr><th>序号</th><th>解禁时间</th><th>解禁股东数</th><th>解禁数量</th><th>实际解禁数量</th><th>未解禁数量</th><th>实际解禁数量市值</th><th>占总市值比例</th><th>占流通市值比例</th><th>解禁前一交易日收盘价</th><th>限售股类型</th><th>解禁前20日涨跌幅</th><th>解禁后20日涨跌幅</th></tr></thead><tbody><tr><td>1</td><td>2025-06-20</td><td>5</td><td>10174200.0</td><td>10174200.0</td><td>588000.0</td><td>177946758.0</td><td>0.001200498686</td><td>0.001200581984</td><td>17.49</td><td>股权激励限售股份</td><td>-6.40546469</td><td>8.02752294</td></tr><tr><td>2</td><td>2020-07-02</td><td>1</td><td>4443732.0</td><td>4443732.0</td><td>688824.9999999999</td><td>89852261.03999999</td><td>0.000525026563</td><td>0.000525069296</td><td>20.22</td><td>股权激励限售股份</td><td>2.92087095</td><td>12.59495368</td></tr><tr><td>3</td><td>2019-09-06</td><td>19</td><td>24308503.999999996</td><td>24308503.999999996</td><td>7861207.000000001</td><td>358550434.0</td><td>0.002904218849</td><td>0.002906949069</td><td>14.75</td><td>股权激励限售股份</td><td>7.66961652</td><td>1.02739726</td></tr><tr><td>4</td><td>2018-06-20</td><td>16</td><td>21433579.0</td><td>21433579.0</td><td>38504087.0</td><td>180256399.39000002</td><td>0.002781100651</td><td>0.002795065002</td><td>8.41</td><td>股权激励限售股份</td><td>-0.69124424</td><td>-4.17633411</td></tr><tr><td>5</td><td>2013-01-28</td><td>10</td><td>562906137.0</td><td>234492599.99999997</td><td>0.0</td><td>2614592490.0</td><td>0.030879862319</td><td>0.030879862319</td><td>11.15</td><td>定向增发机构配售股份</td><td>2.91262136</td><td>11.13207547</td></tr></tbody></table>
+        </section>
+        
+        <section class="card" id="dividend_em">
+          <h2>分红送转（东财） <span class="badge">新接入</span></h2>
+          <p class="src">ak.stock_fhps_detail_em · 414 ms · 行数 25</p>
+          <p class="desc">东财分红送转明细：送转比例、现金分红、股息率。</p>
+          <table><thead><tr><th>报告期</th><th>业绩披露日期</th><th>送转股份-送转总比例</th><th>送转股份-送股比例</th><th>送转股份-转股比例</th><th>现金分红-现金分红比例</th><th>现金分红-现金分红比例描述</th><th>现金分红-股息率</th><th>每股收益</th><th>每股净资产</th><th>每股公积金</th><th>每股未分配利润</th><th>净利润同比增长</th><th>总股本</th><th>预案公告日</th><th>股权登记日</th><th>除权除息日</th><th>方案进度</th><th>最新公告日期</th></tr></thead><tbody><tr><td>2003-12-31</td><td>2004-03-18</td><td>0.0</td><td>0.0</td><td>0.0</td><td>5.0</td><td>10派5.00元(含税,扣税后4.00元)</td><td>0.018181818182</td><td>1.547</td><td>7.085</td><td>3.520605919375</td><td>2.183567291417</td><td>54.77321805342</td><td>240000000</td><td></td><td>2004-05-10</td><td>2004-05-11</td><td>实施分配</td><td>2004-04-27</td></tr><tr><td>2004-12-31</td><td>2005-04-15</td><td>10.0</td><td>0.0</td><td>10.0</td><td>2.0</td><td>10转10.00派2.00元(含税,扣税后1.80元)</td><td>0.012763241863</td><td>1.36</td><td>7.94</td><td>3.514668992208</td><td>2.645150363833</td><td>0.769002747169</td><td>240000000</td><td></td><td>2005-06-29</td><td>2005-06-30</td><td>实施分配</td><td>2005-06-24</td></tr><tr><td>2006-12-31</td><td>2007-03-08</td><td>10.0</td><td>0.0</td><td>10.0</td><td>2.0</td><td>10转10.00派2.00元(含税,扣税后1.80元)</td><td>0.003077396523</td><td>0.62</td><td>5.52</td><td>1.793047955479</td><td>2.590901672208</td><td>173.729249682816</td><td>480000000</td><td>2007-03-08</td><td>2007-04-20</td><td>2007-04-23</td><td>实施分配</td><td>2007-04-17</td></tr><tr><td>2007-12-31</td><td>2008-04-25</td><td>5.0</td><td>2.0</td><td>3.0</td><td>0.5</td><td>10送2.00转3.00派0.50元(含税,扣税后0.25元)</td><td>0.001556178027</td><td>1.65</td><td>4.77</td><td>1.026925340282</td><td>2.277894199012</td><td>171.308833862628</td><td>992000000</td><td>2008-04-25</td><td>2008-07-09</td><td>2008-07-10</td><td>实施分配</td><td>2008-07-04</td></tr><tr><td>2008-12-31</td><td>2009-04-21</td><td>0.0</td><td>0.0</td><td>0.0</td><td>1.8</td><td>10派1.80元(含税,扣税后1.62元)</td><td>0.006030150754</td><td>0.83</td><td>3.92</td><td>0.484616893522</td><td>2.097232483636</td><td>-23.280725806827</td><td>1488000000</td><td>2009-04-21</td><td>2009-06-25</td><td>2009-06-26</td><td>实施分配</td><td>2009-06-22</td></tr><tr><td>2009-12-31</td><td>2010-04-26</td><td>5.0</td><td>2.0</td><td>3.0</td><td>1.6</td><td>10送2.00转3.00派1.60元(含税,扣税后1.24元)</td><td>0.005563282337</td><td>1.32</td><td>5.06</td><td>0.484616893522</td><td>3.104278404792</td><td>59.27024227134</td><td>1607133574</td><td>2010-04-26</td><td>2010-06-23</td><td>2010-06-24</td><td>实施分配</td><td>2010-06-18</td></tr><tr><td>2010-06-30</td><td>2010-08-23</td><td>11.0</td><td>11.0</td><td>0.0</td><td>1.3</td><td>10送11.00派1.30元(含税,扣税后0.07元)</td><td>0.003243512974</td><td>1.19</td><td>3.73</td><td>0.004021485464</td><td>2.447565459028</td><td>162.387592999937</td><td>2410700361</td><td>2010-08-23</td><td>2010-10-21</td><td>2010-10-22</td><td>实施分配</td><td>2010-10-18</td></tr><tr><td>2010-12-31</td><td>2011-03-18</td><td>5.0</td><td>5.0</td><td>0.0</td><td>0.6</td><td>10送5.00派0.60元(含税,扣税后0.04元)</td><td>0.002172338885</td><td>1.11</td><td>2.24</td><td>0.001914993078</td><td>0.989201345224</td><td>112.714555673324</td><td>5062470758</td><td>2011-03-18</td><td>2011-04-21</td><td>2011-04-22</td><td>实施分配</td><td>2011-04-18</td></tr><tr><td>2011-12-31</td><td>2012-03-29</td><td>0.0</td><td>0.0</td><td>0.0</td><td>3.0</td><td>10派3.00元(含税,扣税后2.70元)</td><td>0.024232633279</td><td>1.139</td><td>2.589</td><td>0.001276662052</td><td>1.36410249111</td><td>54.019375941874</td><td>7593706137</td><td>2012-03-29</td><td>2012-08-07</td><td>2012-08-08</td><td>实施分配</td><td>2012-08-02</td></tr><tr><td>2012-12-31</td><td>2013-04-27</td><td></td><td></td><td></td><td>2.5</td><td>10派2.50元(含税,扣税后2.25元)</td><td>0.033875338753</td><td>0.75</td><td>3.031380725037</td><td>0.000374257313</td><td>1.759171081946</td><td>-34.256437234793</td><td>7616504037</td><td>2013-04-27</td><td>2013-08-21</td><td>2013-08-22</td><td>实施分配</td><td>2013-08-16</td></tr><tr><td>2013-12-31</td><td>2014-04-30</td><td></td><td></td><td></td><td>1.2</td><td>10派1.20元(含税,扣税后1.08元)</td><td>0.020547945205</td><td>0.38</td><td>3.136310569784</td><td>0.016819527699</td><td>1.859641510068</td><td>-48.935165522208</td><td>7616504037</td><td>2014-04-30</td><td>2014-08-07</td><td>2014-08-08</td><td>实施分配</td><td>2014-08-04</td></tr><tr><td>2014-12-31</td><td>2015-04-21</td><td></td><td></td><td></td><td>0.48</td><td>10派0.48元(含税,扣税后0.432元)</td><td>0.003755868545</td><td>0.093</td><td>3.122880392369</td><td>0.100170760758</td><td>1.809704819954</td><td>-75.574899391961</td><td>7616504037</td><td>2015-04-21</td><td>2015-06-10</td><td>2015-06-11</td><td>实施分配</td><td>2015-06-05</td></tr><tr><td>2015-12-31</td><td>2016-04-29</td><td></td><td></td><td></td><td>0.1</td><td>10派0.10元(含税,扣税后0.09元)</td><td>0.001824817518</td><td>0.018</td><td>2.976524137583</td><td>0.100170760758</td><td>1.779900200932</td><td>-80.458992168707</td><td>7610857310</td><td>2016-04-29</td><td>2016-08-23</td><td>2016-08-24</td><td>实施分配</td><td>2016-08-17</td></tr><tr><td>2016-12-31</td><td>2017-04-28</td><td></td><td></td><td></td><td>0.1</td><td>10派0.10元(含税,扣税后0.09元)</td><td>0.001234567901</td><td>0.0267</td><td>2.913680117358</td><td>0.077645232808</td><td>1.778055368894</td><td>4001.12880467648</td><td>7657987078</td><td>2017-04-28</td><td>2017-08-23</td><td>2017-08-24</td><td>实施分配</td><td>2017-08-17</td></tr><tr><td>2017-06-30</td><td>2017-08-30</td><td></td><td></td><td></td><td>0.2</td><td>10派0.20元(含税,扣税后0.18元)</td><td>0.002557544757</td><td>0.151</td><td>3.106611415268</td><td>0.098218711754</td><td>1.919632041563</td><td>740.945829376672</td><td>7643585674</td><td>2017-08-30</td><td>2017-10-23</td><td>2017-10-24</td><td>实施分配</td><td>2017-10-17</td></tr><tr><td>2017-12-31</td><td>2018-04-17</td><td></td><td></td><td></td><td>1.6</td><td>10派1.60元(含税,扣税后1.44元)</td><td>0.017601760176</td><td>0.2733</td><td>3.273549332432</td><td>0.13690246656</td><td>1.972552007241</td><td>928.351445268533</td><td>7780218039</td><td>2018-04-17</td><td>2018-08-20</td><td>2018-08-21</td><td>实施分配</td><td>2018-08-14</td></tr><tr><td>2018-12-31</td><td>2019-04-01</td><td></td><td></td><td></td><td>2.6</td><td>10派2.60元(含税,扣税后2.34元)</td><td>0.019374068554</td><td>0.7907</td><td>3.988855503043</td><td>0.241438504772</td><td>2.53583936131</td><td>192.330229661518</td><td>8375092468</td><td>2019-04-01</td><td>2019-07-16</td><td>2019-07-17</td><td>实施分配</td><td>2019-07-11</td></tr><tr><td>2019-12-31</td><td>2020-04-24</td><td></td><td></td><td></td><td>4.2</td><td>10派4.20元(含税,扣税后3.78元)</td><td>0.018372703412</td><td>1.3595</td><td>5.271740701613</td><td>0.705927289566</td><td>3.435958551412</td><td>83.226525631233</td><td>8464963897</td><td>2020-04-24</td><td>2020-07-21</td><td>2020-07-22</td><td>实施分配</td><td>2020-07-16</td></tr><tr><td>2020-12-31</td><td>2021-03-31</td><td></td><td></td><td></td><td>6.0</td><td>10派6.00元(含税,扣税后5.40元)</td><td>0.021352313167</td><td>1.8397</td><td>6.671276440534</td><td>0.604990949468</td><td>4.92921017816</td><td>36.249072150676</td><td>8485221391</td><td>2021-03-31</td><td>2021-06-15</td><td>2021-06-16</td><td>实施分配</td><td>2021-06-08</td></tr><tr><td>2021-12-31</td><td>2022-04-23</td><td></td><td></td><td></td><td>4.5</td><td>10派4.50元(含税,扣税后4.05元)</td><td>0.025847214245</td><td>1.4287</td><td>7.499587640422</td><td>0.605696402557</td><td>5.742344147626</td><td>-22.036897272514</td><td>8493286021</td><td>2022-04-23</td><td>2022-06-09</td><td>2022-06-10</td><td>实施分配</td><td>2022-06-02</td></tr></tbody></table><p class="truncated">显示前 20 条 / 共 25 条</p>
+        </section>
+        
+        <section class="card" id="dividend_ths">
+          <h2>分红方案（同花顺） <span class="badge">新接入</span></h2>
+          <p class="src">ak.stock_fhps_detail_ths · 326 ms · 行数 46</p>
+          <p class="desc">同花顺分红方案历史：董事会日 / 登记日 / 除权日 / 实施日 / 分红总额。</p>
+          <table><thead><tr><th>报告期</th><th>董事会日期</th><th>股东大会预案公告日期</th><th>实施公告日</th><th>分红方案说明</th><th>A股股权登记日</th><th>A股除权除息日</th><th>分红总额</th><th>方案进度</th><th>股利支付率</th><th>税前分红率</th></tr></thead><tbody><tr><td>2003中报</td><td>2003-08-18</td><td></td><td></td><td>不分配不转增</td><td></td><td></td><td>--</td><td>董事会预案</td><td>--</td><td>--</td></tr><tr><td>2003年报</td><td>2004-03-18</td><td>2004-04-21</td><td>2004-04-27</td><td>10派5元(含税)</td><td>2004-05-10</td><td>2004-05-11</td><td>1.20亿</td><td>实施方案</td><td>32.32%</td><td>1.82%</td></tr><tr><td>2004中报</td><td>2004-08-26</td><td></td><td></td><td>不分配不转增</td><td></td><td></td><td>--</td><td>董事会预案</td><td>--</td><td>--</td></tr><tr><td>2004年报</td><td>2005-05-14</td><td>2005-05-31</td><td>2005-06-24</td><td>10转10股派2元(含税)</td><td>2005-06-29</td><td>2005-06-30</td><td>4800.00万</td><td>实施方案</td><td>14.71%</td><td>1.28%</td></tr><tr><td>2005中报</td><td>2005-08-25</td><td></td><td></td><td>不分配不转增</td><td></td><td></td><td>--</td><td>董事会预案</td><td>--</td><td>--</td></tr><tr><td>2005年报</td><td>2006-04-18</td><td>2006-05-27</td><td></td><td>不分配不转增</td><td></td><td></td><td>--</td><td>股东大会预案</td><td>--</td><td>--</td></tr><tr><td>2006中报</td><td>2006-08-18</td><td></td><td></td><td>不分配不转增</td><td></td><td></td><td>--</td><td>董事会预案</td><td>--</td><td>--</td></tr><tr><td>2006年报</td><td>2007-03-08</td><td>2007-03-30</td><td>2007-04-17</td><td>10转10股派2元(含税)</td><td>2007-04-20</td><td>2007-04-23</td><td>9600.00万</td><td>实施方案</td><td>32.26%</td><td>0.31%</td></tr><tr><td>2007中报</td><td>2007-08-25</td><td></td><td></td><td>不分配不转增</td><td></td><td></td><td>--</td><td>董事会预案</td><td>--</td><td>--</td></tr><tr><td>2007年报</td><td>2008-04-25</td><td>2008-06-24</td><td>2008-07-04</td><td>10送2股转3股派0.5元(含税)</td><td>2008-07-09</td><td>2008-07-10</td><td>4960.00万</td><td>实施方案</td><td>3.03%</td><td>0.16%</td></tr><tr><td>2008中报</td><td>2008-08-26</td><td></td><td></td><td>不分配不转增</td><td></td><td></td><td>--</td><td>董事会预案</td><td>--</td><td>--</td></tr><tr><td>2008年报</td><td>2009-04-21</td><td>2009-05-23</td><td>2009-06-22</td><td>10派1.8元(含税)</td><td>2009-06-25</td><td>2009-06-26</td><td>2.68亿</td><td>实施方案</td><td>21.74%</td><td>0.6%</td></tr><tr><td>2009中报</td><td>2009-08-26</td><td></td><td></td><td>不分配不转增</td><td></td><td></td><td>--</td><td>董事会预案</td><td>--</td><td>--</td></tr><tr><td>2009年报</td><td>2010-04-26</td><td>2010-05-21</td><td>2010-06-18</td><td>10送2股转3股派1.6元(含税)</td><td>2010-06-23</td><td>2010-06-24</td><td>2.57亿</td><td>实施方案</td><td>12.13%</td><td>0.56%</td></tr><tr><td>2010中报</td><td>2010-08-23</td><td>2010-09-30</td><td>2010-10-18</td><td>10送11股派1.3元(含税)</td><td>2010-10-21</td><td>2010-10-22</td><td>3.13亿</td><td>实施方案</td><td>10.92%</td><td>0.32%</td></tr><tr><td>2010年报</td><td>2011-03-18</td><td>2011-04-11</td><td>2011-04-18</td><td>10送5股派0.6元(含税)</td><td>2011-04-21</td><td>2011-04-22</td><td>3.04亿</td><td>实施方案</td><td>5.41%</td><td>0.22%</td></tr><tr><td>2011中报</td><td>2011-08-16</td><td></td><td></td><td>不分配不转增</td><td></td><td></td><td>--</td><td>董事会预案</td><td>--</td><td>--</td></tr><tr><td>2011年报</td><td>2012-03-29</td><td>2012-06-27</td><td>2012-08-02</td><td>10派3元(含税)</td><td>2012-08-07</td><td>2012-08-08</td><td>22.78亿</td><td>实施方案</td><td>26.34%</td><td>2.42%</td></tr><tr><td>2012中报</td><td>2012-08-31</td><td></td><td></td><td>不分配不转增</td><td></td><td></td><td>--</td><td>董事会预案</td><td>--</td><td>--</td></tr><tr><td>2012年报</td><td>2013-04-27</td><td>2013-06-29</td><td>2013-08-16</td><td>10派2.5元(含税)</td><td>2013-08-21</td><td>2013-08-22</td><td>19.04亿</td><td>实施方案</td><td>33.33%</td><td>3.39%</td></tr></tbody></table><p class="truncated">显示前 20 条 / 共 46 条</p>
+        </section>
+        
+        <section class="card" id="pledge_ratio">
+          <h2>股权质押比例 <span class="badge">新接入</span></h2>
+          <p class="src">ak.stock_gpzy_pledge_ratio_em · 1970 ms · 行数 1</p>
+          <p class="desc">东财质押比例快照（周度）：质押笔数、股数、占总股本比例。</p>
+          <table><thead><tr><th>序号</th><th>股票代码</th><th>股票简称</th><th>交易日期</th><th>所属行业</th><th>质押比例</th><th>质押股数</th><th>质押市值</th><th>质押笔数</th><th>无限售股质押数</th><th>限售股质押数</th><th>近一年涨跌幅</th><th>所属行业代码</th></tr></thead><tbody><tr><td>1314</td><td>600031</td><td>三一重工</td><td>2026-05-08</td><td>工程机械</td><td>4.99</td><td>42262.79</td><td>867655.0787</td><td>1</td><td>42262.79</td><td>0.0</td><td>7.82326564</td><td>739</td></tr></tbody></table>
+        </section>
+        
+        <section class="card" id="earnings_forecast">
+          <h2>业绩预告 <span class="badge">—</span></h2>
+          <p class="src">ak.stock_yjyg_em · 16751 ms · 行数 0</p>
+          <p class="desc">东财业绩预告：预告净利润上下限、同比变动幅度。</p>
+          <p class="empty">— 无数据 <span class="reason">(no preview in recent quarters)</span> —</p>
+        </section>
+        
+        <section class="card" id="earnings_express">
+          <h2>业绩快报 <span class="badge">—</span></h2>
+          <p class="src">ak.stock_yjkb_em · 1166 ms · 行数 0</p>
+          <p class="desc">东财业绩快报：期末营收 / 利润 / ROE 等关键 KPI。</p>
+          <p class="empty">— 无数据 <span class="reason">(no express in recent quarters)</span> —</p>
+        </section>
+        
+        <section class="card" id="earnings_report">
+          <h2>业绩报告 <span class="badge">新接入</span></h2>
+          <p class="src">ak.stock_yjbb_em · 24358 ms · 行数 4</p>
+          <p class="desc">东财正式季报披露 KPI。</p>
+          <table><thead><tr><th>序号</th><th>股票代码</th><th>股票简称</th><th>每股收益</th><th>营业总收入-营业总收入</th><th>营业总收入-同比增长</th><th>营业总收入-季度环比增长</th><th>净利润-净利润</th><th>净利润-同比增长</th><th>净利润-季度环比增长</th><th>每股净资产</th><th>净资产收益率</th><th>每股经营现金流量</th><th>销售毛利率</th><th>所处行业</th><th>最新公告日期</th><th>_报告期</th></tr></thead><tbody><tr><td>859</td><td>600031</td><td>三一重工</td><td>0.2711</td><td>24146971000.0</td><td>14.0257616271</td><td>2.3378</td><td>2480743000.0</td><td>0.46</td><td>94.9562</td><td>9.850486960093</td><td>2.77</td><td>0.385070196816</td><td>27.4803199453</td><td>工程机械</td><td>2026-04-30</td><td>2026-03-31</td></tr><tr><td>10097</td><td>600031</td><td>三一重工</td><td>0.9834</td><td>89699505000.0</td><td>14.4368948422</td><td>10.652</td><td>8408057000.0</td><td>41.18</td><td>-33.701</td><td>9.6064388879</td><td>11.18</td><td>2.172403731418</td><td>27.5360846194</td><td>工程机械</td><td>2026-03-31</td><td>2025-12-31</td></tr><tr><td>1176</td><td>600031</td><td>三一重工</td><td>0.8455</td><td>66104144000.0</td><td>13.2680527591</td><td>-9.6575</td><td>7135595000.0</td><td>46.58</td><td>-30.0829</td><td>8.662965475981</td><td>9.69</td><td>1.716598598837</td><td>27.6162092663</td><td>工程机械</td><td>2025-10-31</td><td>2025-09-30</td></tr><tr><td>8242</td><td>600031</td><td>三一重工</td><td>0.6175</td><td>44780205000.0</td><td>14.6435437995</td><td>11.4591</td><td>5216316000.0</td><td>46.0</td><td>11.081</td><td>8.670858024646</td><td>6.99</td><td>1.195788236854</td><td>27.436463542</td><td>工程机械</td><td>2025-08-22</td><td>2025-06-30</td></tr></tbody></table>
+        </section>
+        
+        <section class="card" id="institutional_visits">
+          <h2>机构调研 <span class="badge">—</span></h2>
+          <p class="src">ak.stock_jgdy_detail_em · 8041 ms · 行数 0</p>
+          <p class="desc">东财机构调研明细（近 90 日）：接待日、调研机构 / 人员、调研概要。</p>
+          <p class="empty">— 无数据 —</p>
+        </section>
+        
+        <section class="card" id="block_trade">
+          <h2>大宗交易 <span class="badge">新接入</span></h2>
+          <p class="src">ak.stock_dzjy_mrmx · 928 ms · 行数 2</p>
+          <p class="desc">东财大宗交易明细（近 60 日）：成交价、折溢价、买 / 卖营业部。</p>
+          <table><thead><tr><th>序号</th><th>交易日期</th><th>证券代码</th><th>证券简称</th><th>涨跌幅</th><th>收盘价</th><th>成交价</th><th>折溢率</th><th>成交量</th><th>成交额</th><th>成交额/流通市值</th><th>买方营业部</th><th>卖方营业部</th></tr></thead><tbody><tr><td>3831</td><td>2026-02-27</td><td>600031</td><td>三一重工</td><td>-0.8565</td><td>23.15</td><td>23.15</td><td>0.0</td><td>2588000</td><td>59912200</td><td>0.030539071115</td><td>国泰海通证券股份有限公司总部</td><td>高盛(中国)证券有限责任公司上海浦东新区世纪大道证券营业部</td></tr><tr><td>3832</td><td>2026-03-10</td><td>600031</td><td>三一重工</td><td>3.7142</td><td>22.06</td><td>22.06</td><td>0.0</td><td>455300</td><td>10043900</td><td>0.005372648439</td><td>中国国际金融股份有限公司北京建国门外大街证券营业部</td><td>平安证券股份有限公司深圳金田路证券营业部</td></tr></tbody></table>
+        </section>
+        
+        <section class="card" id="fund_flow">
+          <h2>个股资金流向 <span class="badge">新接入</span></h2>
+          <p class="src">ak.stock_individual_fund_flow · 95 ms · 行数 121</p>
+          <p class="desc">东财个股资金流向（日频）：主力 / 超大单 / 大单 / 中单 / 小单净流入。</p>
+          <table><thead><tr><th>日期</th><th>收盘价</th><th>涨跌幅</th><th>主力净流入-净额</th><th>主力净流入-净占比</th><th>超大单净流入-净额</th><th>超大单净流入-净占比</th><th>大单净流入-净额</th><th>大单净流入-净占比</th><th>中单净流入-净额</th><th>中单净流入-净占比</th><th>小单净流入-净额</th><th>小单净流入-净占比</th></tr></thead><tbody><tr><td>2025-11-07</td><td>22.13</td><td>0.64</td><td>19018720.0</td><td>1.59</td><td>25940384.0</td><td>2.18</td><td>-6921664.0</td><td>-0.58</td><td>27688112.0</td><td>2.32</td><td>-46706832.0</td><td>-3.92</td></tr><tr><td>2025-11-10</td><td>21.13</td><td>-4.52</td><td>-132269968.0</td><td>-4.74</td><td>17430160.0</td><td>0.62</td><td>-149700128.0</td><td>-5.37</td><td>1847872.0</td><td>0.07</td><td>130422096.0</td><td>4.67</td></tr><tr><td>2025-11-11</td><td>20.91</td><td>-1.04</td><td>-164364600.0</td><td>-13.91</td><td>-117951497.0</td><td>-9.98</td><td>-46413103.0</td><td>-3.93</td><td>24770768.0</td><td>2.1</td><td>139593824.0</td><td>11.81</td></tr><tr><td>2025-11-12</td><td>20.65</td><td>-1.24</td><td>-61008933.0</td><td>-6.67</td><td>-32859076.0</td><td>-3.59</td><td>-28149857.0</td><td>-3.08</td><td>-15794422.0</td><td>-1.73</td><td>76803350.0</td><td>8.4</td></tr><tr><td>2025-11-13</td><td>20.89</td><td>1.16</td><td>46201091.0</td><td>4.74</td><td>65514147.0</td><td>6.72</td><td>-19313056.0</td><td>-1.98</td><td>-13275584.0</td><td>-1.36</td><td>-32925505.0</td><td>-3.38</td></tr><tr><td>2025-11-14</td><td>20.66</td><td>-1.1</td><td>-27122651.0</td><td>-3.17</td><td>-35632565.0</td><td>-4.17</td><td>8509914.0</td><td>1.0</td><td>53022195.0</td><td>6.21</td><td>-25899544.0</td><td>-3.03</td></tr><tr><td>2025-11-17</td><td>20.57</td><td>-0.44</td><td>35373257.0</td><td>3.96</td><td>-17632814.0</td><td>-1.98</td><td>53006071.0</td><td>5.94</td><td>-56656800.0</td><td>-6.35</td><td>21283536.0</td><td>2.38</td></tr><tr><td>2025-11-18</td><td>20.86</td><td>1.41</td><td>312793780.0</td><td>19.63</td><td>200983716.0</td><td>12.61</td><td>111810064.0</td><td>7.02</td><td>-123968976.0</td><td>-7.78</td><td>-188824807.0</td><td>-11.85</td></tr><tr><td>2025-11-19</td><td>20.77</td><td>-0.43</td><td>6550730.0</td><td>0.87</td><td>-13159511.0</td><td>-1.75</td><td>19710241.0</td><td>2.62</td><td>-7098035.0</td><td>-0.94</td><td>547306.0</td><td>0.07</td></tr><tr><td>2025-11-20</td><td>20.86</td><td>0.43</td><td>76385315.0</td><td>9.68</td><td>39703474.0</td><td>5.03</td><td>36681841.0</td><td>4.65</td><td>-3231640.0</td><td>-0.41</td><td>-73153683.0</td><td>-9.27</td></tr><tr><td>2025-11-21</td><td>20.26</td><td>-2.88</td><td>-138766533.0</td><td>-12.38</td><td>-83967153.0</td><td>-7.49</td><td>-54799380.0</td><td>-4.89</td><td>-22563872.0</td><td>-2.01</td><td>161330416.0</td><td>14.4</td></tr><tr><td>2025-11-24</td><td>20.51</td><td>1.23</td><td>22745786.0</td><td>2.9</td><td>26072941.0</td><td>3.32</td><td>-3327155.0</td><td>-0.42</td><td>-52712560.0</td><td>-6.71</td><td>29966769.0</td><td>3.82</td></tr><tr><td>2025-11-25</td><td>20.44</td><td>-0.34</td><td>-23449510.0</td><td>-2.73</td><td>-10645498.0</td><td>-1.24</td><td>-12804012.0</td><td>-1.49</td><td>-47537948.0</td><td>-5.52</td><td>70987449.0</td><td>8.25</td></tr><tr><td>2025-11-26</td><td>20.88</td><td>2.15</td><td>21806452.0</td><td>1.69</td><td>35247588.0</td><td>2.74</td><td>-13441136.0</td><td>-1.04</td><td>-16175648.0</td><td>-1.26</td><td>-5630800.0</td><td>-0.44</td></tr><tr><td>2025-11-27</td><td>20.13</td><td>-3.59</td><td>-193842210.0</td><td>-12.43</td><td>-66952146.0</td><td>-4.29</td><td>-126890064.0</td><td>-8.14</td><td>66451792.0</td><td>4.26</td><td>127390416.0</td><td>8.17</td></tr><tr><td>2025-11-28</td><td>20.32</td><td>0.94</td><td>-121276602.0</td><td>-14.19</td><td>-84572911.0</td><td>-9.89</td><td>-36703691.0</td><td>-4.29</td><td>60115832.0</td><td>7.03</td><td>61160771.0</td><td>7.15</td></tr><tr><td>2025-12-01</td><td>20.12</td><td>-0.98</td><td>-49955218.0</td><td>-3.76</td><td>-12635330.0</td><td>-0.95</td><td>-37319888.0</td><td>-2.81</td><td>-54955424.0</td><td>-4.13</td><td>104910640.0</td><td>7.89</td></tr><tr><td>2025-12-02</td><td>20.16</td><td>0.2</td><td>53851396.0</td><td>5.26</td><td>67852644.0</td><td>6.63</td><td>-14001248.0</td><td>-1.37</td><td>-71533888.0</td><td>-6.99</td><td>17682496.0</td><td>1.73</td></tr><tr><td>2025-12-03</td><td>20.4</td><td>1.19</td><td>-34121601.0</td><td>-2.64</td><td>54103039.0</td><td>4.19</td><td>-88224640.0</td><td>-6.83</td><td>47852928.0</td><td>3.7</td><td>-13731312.0</td><td>-1.06</td></tr><tr><td>2025-12-04</td><td>20.97</td><td>2.79</td><td>222640180.0</td><td>12.79</td><td>140866404.0</td><td>8.09</td><td>81773776.0</td><td>4.7</td><td>-59904656.0</td><td>-3.44</td><td>-162735520.0</td><td>-9.35</td></tr><tr><td>2025-12-05</td><td>21.3</td><td>1.57</td><td>-48282151.0</td><td>-2.78</td><td>-10283783.0</td><td>-0.59</td><td>-37998368.0</td><td>-2.19</td><td>-5618656.0</td><td>-0.32</td><td>53900816.0</td><td>3.11</td></tr><tr><td>2025-12-08</td><td>21.23</td><td>-0.33</td><td>-54616521.0</td><td>-3.94</td><td>55514247.0</td><td>4.0</td><td>-110130768.0</td><td>-7.94</td><td>-48842944.0</td><td>-3.52</td><td>103459488.0</td><td>7.46</td></tr><tr><td>2025-12-09</td><td>21.18</td><td>-0.24</td><td>52440180.0</td><td>5.96</td><td>23093663.0</td><td>2.62</td><td>29346517.0</td><td>3.33</td><td>-35522482.0</td><td>-4.03</td><td>-16917696.0</td><td>-1.92</td></tr><tr><td>2025-12-10</td><td>21.47</td><td>1.37</td><td>67814725.0</td><td>6.15</td><td>-9452613.0</td><td>-0.86</td><td>77267338.0</td><td>7.01</td><td>5498400.0</td><td>0.5</td><td>-73313136.0</td><td>-6.65</td></tr><tr><td>2025-12-11</td><td>21.09</td><td>-1.77</td><td>-125148022.0</td><td>-11.75</td><td>-50391573.0</td><td>-4.73</td><td>-74756449.0</td><td>-7.02</td><td>-22803424.0</td><td>-2.14</td><td>147951455.0</td><td>13.89</td></tr><tr><td>2025-12-12</td><td>21.32</td><td>1.09</td><td>6724488.0</td><td>0.59</td><td>-1412404.0</td><td>-0.12</td><td>8136892.0</td><td>0.72</td><td>-94367552.0</td><td>-8.32</td><td>87643056.0</td><td>7.73</td></tr><tr><td>2025-12-15</td><td>21.07</td><td>-1.17</td><td>-14103115.0</td><td>-1.48</td><td>14891186.0</td><td>1.56</td><td>-28994301.0</td><td>-3.04</td><td>11138336.0</td><td>1.17</td><td>2964784.0</td><td>0.31</td></tr><tr><td>2025-12-16</td><td>20.76</td><td>-1.47</td><td>-84499128.0</td><td>-9.69</td><td>-6219960.0</td><td>-0.71</td><td>-78279168.0</td><td>-8.98</td><td>-31852713.0</td><td>-3.65</td><td>116351844.0</td><td>13.35</td></tr><tr><td>2025-12-17</td><td>21.07</td><td>1.49</td><td>-54057646.0</td><td>-5.35</td><td>-60883126.0</td><td>-6.03</td><td>6825480.0</td><td>0.68</td><td>-18224848.0</td><td>-1.81</td><td>72282496.0</td><td>7.16</td></tr><tr><td>2025-12-18</td><td>21.0</td><td>-0.33</td><td>-24212794.0</td><td>-2.97</td><td>-22436437.0</td><td>-2.76</td><td>-1776357.0</td><td>-0.22</td><td>48878553.0</td><td>6.0</td><td>-24665763.0</td><td>-3.03</td></tr></tbody></table><p class="truncated">显示前 30 条 / 共 121 条</p>
+        </section>
+        
+        <section class="card" id="northbound">
+          <h2>北向持股 <span class="badge">新接入</span></h2>
+          <p class="src">ak.stock_hsgt_individual_em · 1880 ms · 行数 1685</p>
+          <p class="desc">东财北向持股历史：持股数量、市值、占A股比例、当日增减。</p>
+          <table><thead><tr><th>持股日期</th><th>当日收盘价</th><th>当日涨跌幅</th><th>持股数量</th><th>持股市值</th><th>持股数量占A股百分比</th><th>今日增持股数</th><th>今日增持资金</th><th>今日持股市值变化</th></tr></thead><tbody><tr><td>2017-03-16</td><td>7.48</td><td>-1.578947368421</td><td>292439355</td><td>2187446375.4</td><td>3.85</td><td></td><td></td><td></td></tr><tr><td>2017-03-17</td><td>7.48</td><td>0.0</td><td>294231880</td><td>2200854462.4</td><td>3.87</td><td>1792525.0</td><td>13367755.1875</td><td>13408087.0</td></tr><tr><td>2017-03-20</td><td>7.42</td><td>-0.802139037433</td><td>290386280</td><td>2154666197.6</td><td>3.82</td><td>-3845600.0</td><td>-28469361.36</td><td>-46188264.8</td></tr><tr><td>2017-03-21</td><td>7.45</td><td>0.404312668464</td><td>291118009</td><td>2168829167.05</td><td>3.83</td><td>731729.0</td><td>5450649.321</td><td>14162969.45</td></tr><tr><td>2017-03-22</td><td>7.51</td><td>0.805369127517</td><td>291856701</td><td>2191843824.51</td><td>3.84</td><td>738692.0</td><td>5565157.7896</td><td>23014657.46</td></tr><tr><td>2017-03-23</td><td>7.48</td><td>-0.399467376831</td><td>288889225</td><td>2160891403.0</td><td>3.8</td><td>-2967476.0</td><td>-22122533.58</td><td>-30952421.51</td></tr><tr><td>2017-03-24</td><td>7.61</td><td>1.737967914439</td><td>284582581</td><td>2165673441.41</td><td>3.74</td><td>-4306644.0</td><td>-32303705.9796</td><td>4782038.41</td></tr><tr><td>2017-03-27</td><td>7.53</td><td>-1.051248357424</td><td>282073699</td><td>2124014953.47</td><td>3.71</td><td>-2508882.0</td><td>-19078542.2808</td><td>-41658487.94</td></tr><tr><td>2017-03-28</td><td>7.45</td><td>-1.062416998672</td><td>278199189</td><td>2072583958.05</td><td>3.66</td><td>-3874510.0</td><td>-28901132.443</td><td>-51430995.42</td></tr><tr><td>2017-03-29</td><td>7.49</td><td>0.536912751678</td><td>276453321</td><td>2070635374.29</td><td>3.64</td><td>-1745868.0</td><td>-13124737.2768</td><td>-1948583.76</td></tr><tr><td>2017-03-30</td><td>7.31</td><td>-2.403204272363</td><td>275273299</td><td>2012247815.69</td><td>3.62</td><td>-1180022.0</td><td>-8745379.0464</td><td>-58387558.6</td></tr><tr><td>2017-03-31</td><td>7.2</td><td>-1.504787961696</td><td>273022330</td><td>1965760776.0</td><td>3.59</td><td>-2250969.0</td><td>-16346086.6842</td><td>-46487039.69</td></tr><tr><td>2017-04-05</td><td>7.35</td><td>2.083333333333</td><td>265954061</td><td>1954762348.35</td><td>3.5</td><td>-7068269.0</td><td>-52555407.3226</td><td>-10998427.65</td></tr><tr><td>2017-04-06</td><td>7.33</td><td>-0.272108843537</td><td>262849395</td><td>1926686065.35</td><td>3.46</td><td>-3104666.0</td><td>-22647917.5368</td><td>-28076283.0</td></tr><tr><td>2017-04-07</td><td>7.25</td><td>-1.091405184175</td><td>261106595</td><td>1893022813.75</td><td>3.43</td><td>-1742800.0</td><td>-12663359.08</td><td>-33663251.6</td></tr><tr><td>2017-04-10</td><td>7.26</td><td>0.137931034483</td><td>256998122</td><td>1865806365.72</td><td>3.38</td><td>-4108473.0</td><td>-29850521.4288</td><td>-27216448.03</td></tr><tr><td>2017-04-11</td><td>7.34</td><td>1.101928374656</td><td>241637122</td><td>1773616475.48</td><td>3.18</td><td>-15361000.0</td><td>-112040061.8</td><td>-92189890.24</td></tr><tr><td>2017-04-12</td><td>7.09</td><td>-3.405994550409</td><td>238843526</td><td>1693400599.34</td><td>3.14</td><td>-2793596.0</td><td>-20002147.36</td><td>-80215876.14</td></tr><tr><td>2017-04-18</td><td>6.81</td><td>0.0</td><td>236717981</td><td>1612049450.61</td><td>3.11</td><td>-2125545.0</td><td>-14602706.7045</td><td>-81351148.73</td></tr><tr><td>2017-04-19</td><td>6.77</td><td>-0.587371512482</td><td>238275811</td><td>1613127240.47</td><td>3.13</td><td>1557830.0</td><td>10511146.359</td><td>1077789.86</td></tr><tr><td>2017-04-20</td><td>6.83</td><td>0.886262924668</td><td>239125311</td><td>1633225874.13</td><td>3.14</td><td>849500.0</td><td>5773286.95</td><td>20098633.66</td></tr><tr><td>2017-04-21</td><td>6.91</td><td>1.171303074671</td><td>244955332</td><td>1692641344.12</td><td>3.22</td><td>5830021.0</td><td>40238804.942</td><td>59415469.99</td></tr><tr><td>2017-04-24</td><td>6.71</td><td>-2.894356005789</td><td>249090877</td><td>1671399784.67</td><td>3.28</td><td>4135545.0</td><td>28012527.612</td><td>-21241559.45</td></tr><tr><td>2017-04-25</td><td>6.81</td><td>1.490312965723</td><td>248392037</td><td>1691549771.97</td><td>3.27</td><td>-698840.0</td><td>-4747499.656</td><td>20149987.3</td></tr><tr><td>2017-04-26</td><td>6.98</td><td>2.496328928047</td><td>247022125</td><td>1724214432.5</td><td>3.25</td><td>-1369912.0</td><td>-9522395.3032</td><td>32664660.53</td></tr><tr><td>2017-04-27</td><td>7.04</td><td>0.859598853868</td><td>245643482</td><td>1729330113.28</td><td>3.23</td><td>-1378643.0</td><td>-9614380.5534</td><td>5115680.78</td></tr><tr><td>2017-04-28</td><td>7.03</td><td>-0.142045454545</td><td>241125759</td><td>1695114085.77</td><td>3.17</td><td>-4517723.0</td><td>-31537320.7184</td><td>-34216027.51</td></tr><tr><td>2017-05-04</td><td>7.17</td><td>-0.139275766017</td><td>230702917</td><td>1654139914.89</td><td>3.03</td><td>-10422842.0</td><td>-75021532.1476</td><td>-40974170.88</td></tr><tr><td>2017-05-05</td><td>6.99</td><td>-2.510460251046</td><td>221699991</td><td>1549682937.09</td><td>2.91</td><td>-9002926.0</td><td>-63020482.0</td><td>-104456977.8</td></tr><tr><td>2017-05-08</td><td>6.88</td><td>-1.573676680973</td><td>213851033</td><td>1471295107.04</td><td>2.81</td><td>-7848958.0</td><td>-53460822.7296</td><td>-78387830.05</td></tr></tbody></table><p class="truncated">显示前 30 条 / 共 1685 条</p>
+        </section>
+        
+        <section class="card" id="investor_qa">
+          <h2>投资者互动 <span class="badge">新接入</span></h2>
+          <p class="src">ak.stock_sns_sseinfo / ak.stock_irm_cninfo · 12817 ms · 行数 5</p>
+          <p class="desc">上证 e 互动（沪市） / 巨潮互动易（深市）投资者问答。</p>
+          <table><thead><tr><th>股票代码</th><th>公司简称</th><th>问题</th><th>回答</th><th>问题时间</th><th>回答时间</th><th>问题来源</th><th>回答来源</th><th>用户名</th></tr></thead><tbody><tr><td>600031</td><td>三一重工</td><td>公司今年会继续回购吗</td><td>尊敬的投资者您好！公司于 2025年4月3日审议通过的股份回购计划已于2026年4月1日完成实施，累计回购股份7267.92万股，占公司A股总股本的0.79%，实际回购金额13.55亿元，回购股份将用于员工持股计划。
+关于2026年后续是否继续回购，公司将综合考虑经营发展、现金流状况、市场环境及股东利益等因素，依据相关法律法规及公司章程规定，履行必要决策程序后确定。若有新的回购计划，公司将及时履行信息披露义务，请以公司在上交所及港交所发布的正式公告为准。公司始终重视股东回报，致力于通过合规有效的资本运作，切实维护全体投资者利益。</td><td>2026年04月03日 11:22</td><td>2026年05月06日 18:32</td><td>Android</td><td>网站</td><td>投资者_1423947172000</td></tr><tr><td>600031</td><td>三一重工</td><td>请问公司在市值管理方面有何举措？</td><td>尊敬的投资者您好，公司始终高度重视市值管理工作，坚持以夯实经营基本面为核心，通过推进全球化布局、数智化转型与降本增效提升核心竞争力与盈利韧性，同时严格履行信息披露义务，常态化开展投资者沟通交流，并通过合理分红、股份回购等方式优化股东回报，多措并举提升公司内在价值与市场认可度，切实维护全体投资者利益。</td><td>2026年04月21日 08:54</td><td>2026年05月06日 18:31</td><td>网站</td><td>网站</td><td>投资者_1718940948000</td></tr><tr><td>600031</td><td>三一重工</td><td>请问公司：三一重工2018－2021年净资产收益率平均达到25%，而2022－2025年只达到8%，远低于优秀公司的水平，也与公司接近10%的净利润率水平不匹配，公司最近四年净资产收益率偏低的主要原因是什么？有没有什么具体措施提升公司的净资产收益率水平？</td><td>尊敬的投资者您好。公司 2022-2025 年净资产收益率较前期有所回落，核心系工程机械行业处于周期调整阶段，受宏观经济、固定资产投资节奏等因素影响，市场需求与行业盈利水平阶段性承压，进而对公司盈利效率形成影响。公司将紧抓行业边际变化机遇，持续优化经营、降本增效，稳步推动净资产收益率修复提升。感谢您的关注。</td><td>2026年04月14日 11:00</td><td>2026年05月06日 18:31</td><td>网站</td><td>网站</td><td>投资者_1776135369069</td></tr><tr><td>600031</td><td>三一重工</td><td>欧盟对中国工程机械的反倾销调查进度已经推进到进口登记这个阶段，并且于2026年2月开始登记。如果最终裁定要征收反倾销税，对公司26年销量会有多大的影响。大概会延迟多久反映到股价上。</td><td>尊敬的投资者您好。欧盟对中国工程机械反倾销调查目前处于进口登记阶段，公司正密切跟进进展并积极应对。公司已搭建全球化产能布局与多元海外市场体系，本地化运营能力持续增强，相关事项对2026年经营的具体影响尚存在不确定性，需待最终裁定结果方可评估。公司股价受宏观环境、行业形势及市场情绪等多重因素综合影响，相关事项的市场反应存在不确定性，公司将持续做好经营与风险防控，切实维护投资者利益。感谢您的关注。</td><td>2026年04月14日 09:19</td><td>2026年05月06日 18:31</td><td>网站</td><td>网站</td><td>投资者_1776095413480</td></tr><tr><td>600031</td><td>三一重工</td><td>公司去年发布回购计划10-20亿，截止去年八月，回购13.55亿，而从去年8月份至今年3月份，长达8个月的时间，公司不再回购也未发布终止回购公告，一直拖到前几天公告回购完成。公司缺少资金吗？还是诱导广大投资者买入公司股份？回购股份的操盘手是本公司证券部员工还是外委其他机构操盘？</td><td>尊敬的投资者您好。公司本次股份回购严格按照监管规则及回购方案实施，回购节奏系综合结合二级市场行情、公司经营规划等因素审慎安排，公司现金流稳健、资金安排充足，不存在相关不当情形，相关操作均合法合规，回购执行主体符合监管及内部规范要求，公司始终严格履行信息披露义务，切实维护全体投资者利益。感谢您的关注。</td><td>2026年04月07日 15:20</td><td>2026年05月06日 18:31</td><td>网站</td><td>网站</td><td>投资者_1697026665000</td></tr></tbody></table>
+        </section>
+        
+        <section class="card" id="research_reports">
+          <h2>研报 <span class="badge">新接入</span></h2>
+          <p class="src">ak.stock_research_report_em · 491 ms · 行数 301</p>
+          <p class="desc">东财研报列表：标题、机构、东财评级、近一月研报数、2026/2027 盈利预测。</p>
+          <table><thead><tr><th>序号</th><th>股票代码</th><th>股票简称</th><th>报告名称</th><th>东财评级</th><th>机构</th><th>近一月个股研报数</th><th>2026-盈利预测-收益</th><th>2026-盈利预测-市盈率</th><th>2027-盈利预测-收益</th><th>2027-盈利预测-市盈率</th><th>2028-盈利预测-收益</th><th>2028-盈利预测-市盈率</th><th>行业</th><th>日期</th><th>报告PDF链接</th></tr></thead><tbody><tr><td>1</td><td>600031</td><td>三一重工</td><td>2026年一季报点评：Q1营收同比+14%领跑行业，看好上行周期龙头利润弹性</td><td>买入</td><td>东吴证券</td><td>1</td><td>1.19</td><td>17.06</td><td>1.51</td><td>13.49</td><td>1.8</td><td>11.31</td><td>工程机械</td><td>2026-04-30</td><td>https://pdf.dfcfw.com/pdf/H3_AP202604301821874307_1.pdf</td></tr><tr><td>2</td><td>600031</td><td>三一重工</td><td>2025年报点评：现金流显著改善，新能源业务营收同比高增</td><td>买入</td><td>东莞证券</td><td>1</td><td>1.16</td><td>18.0</td><td>1.43</td><td>14.0</td><td>1.73</td><td>12.0</td><td>工程机械</td><td>2026-04-09</td><td>https://pdf.dfcfw.com/pdf/H3_AP202604091821090438_1.pdf</td></tr><tr><td>3</td><td>600031</td><td>三一重工</td><td>盈利能力显著提升，全球化战略扎实推进</td><td>买入</td><td>太平洋</td><td>1</td><td>1.18</td><td>17.19</td><td>1.45</td><td>14.03</td><td>1.76</td><td>11.54</td><td>工程机械</td><td>2026-04-03</td><td>https://pdf.dfcfw.com/pdf/H3_AP202604031821009384_1.pdf</td></tr><tr><td>4</td><td>600031</td><td>三一重工</td><td>业绩快速增长，现金流表现亮眼</td><td>买入</td><td>中邮证券</td><td>1</td><td>1.18</td><td>16.0</td><td>1.45</td><td>13.04</td><td>1.73</td><td>10.93</td><td>工程机械</td><td>2026-04-01</td><td>https://pdf.dfcfw.com/pdf/H3_AP202604011820943500_1.pdf</td></tr><tr><td>5</td><td>600031</td><td>三一重工</td><td>2025年报点评：业绩稳健符合预期，看好上行周期龙头利润弹性</td><td>买入</td><td>东吴证券</td><td>1</td><td>1.19</td><td>15.82</td><td>1.51</td><td>12.51</td><td>1.8</td><td>10.49</td><td>工程机械</td><td>2026-03-31</td><td>https://pdf.dfcfw.com/pdf/H3_AP202603311820915189_1.pdf</td></tr><tr><td>6</td><td>600031</td><td>三一重工</td><td>盈利能力提升，利润大幅扩张</td><td>买入</td><td>国金证券</td><td>1</td><td>1.183</td><td>15.95</td><td>1.418</td><td>13.31</td><td>1.708</td><td>11.05</td><td>工程机械</td><td>2026-03-31</td><td>https://pdf.dfcfw.com/pdf/H3_AP202603311820911455_1.pdf</td></tr><tr><td>7</td><td>600031</td><td>三一重工</td><td>全球化龙头行稳致远，周期复苏+体系优势共振上行</td><td>买入</td><td>东吴证券</td><td>1</td><td>1.21</td><td>19.09</td><td>1.38</td><td>16.73</td><td></td><td></td><td>工程机械</td><td>2026-02-14</td><td>https://pdf.dfcfw.com/pdf/H3_AP202602131819927451_1.pdf</td></tr><tr><td>8</td><td>600031</td><td>三一重工</td><td>盈利质量持续向好，港股上市赋能全球化提速</td><td>买入</td><td>华安证券</td><td>1</td><td>1.16</td><td>18.28</td><td>1.41</td><td>15.01</td><td></td><td></td><td>工程机械</td><td>2025-12-31</td><td>https://pdf.dfcfw.com/pdf/H3_AP202512311812099791_1.pdf</td></tr><tr><td>9</td><td>600031</td><td>三一重工</td><td>2025年三季报点评：海内外双驱业绩增长，25Q3归母净利润同比高增</td><td>买入</td><td>东莞证券</td><td>1</td><td>1.18</td><td>19.0</td><td>1.39</td><td>16.0</td><td></td><td></td><td>工程机械</td><td>2025-11-04</td><td>https://pdf.dfcfw.com/pdf/H3_AP202511041775023788_1.pdf</td></tr><tr><td>10</td><td>600031</td><td>三一重工</td><td>Q3业绩高增长，港股上市、全球化布局深入推进</td><td>买入</td><td>太平洋</td><td>1</td><td>1.22</td><td>17.96</td><td>1.52</td><td>14.35</td><td></td><td></td><td>工程机械</td><td>2025-11-04</td><td>https://pdf.dfcfw.com/pdf/H3_AP202511041774981325_1.pdf</td></tr><tr><td>11</td><td>600031</td><td>三一重工</td><td>2025年三季报点评：Q3归母净利润同比+48%，看好上行周期龙头业绩弹性</td><td>买入</td><td>东吴证券</td><td>1</td><td>1.22</td><td>18.41</td><td>1.4</td><td>16.13</td><td></td><td></td><td>工程机械</td><td>2025-11-02</td><td>https://pdf.dfcfw.com/pdf/H3_AP202511021773856441_1.pdf</td></tr><tr><td>12</td><td>600031</td><td>三一重工</td><td>利润增速扩张，现金流向好</td><td>买入</td><td>国金证券</td><td>1</td><td>1.24</td><td>18.15</td><td>1.545</td><td>14.57</td><td></td><td></td><td>工程机械</td><td>2025-10-31</td><td>https://pdf.dfcfw.com/pdf/H3_AP202510311772357651_1.pdf</td></tr><tr><td>13</td><td>600031</td><td>三一重工</td><td>业绩快速增长，现金流亮眼</td><td>买入</td><td>中邮证券</td><td>1</td><td>1.28</td><td>16.36</td><td>1.56</td><td>13.39</td><td></td><td></td><td>工程机械</td><td>2025-09-05</td><td>https://pdf.dfcfw.com/pdf/H3_AP202509051739037440_1.pdf</td></tr><tr><td>14</td><td>600031</td><td>三一重工</td><td>2025H1国内外收入双增长，盈利能力持续改善</td><td>买入</td><td>太平洋</td><td>1</td><td>1.28</td><td>16.59</td><td>1.6</td><td>13.28</td><td></td><td></td><td>工程机械</td><td>2025-08-26</td><td>https://pdf.dfcfw.com/pdf/H3_AP202508261734797638_1.pdf</td></tr><tr><td>15</td><td>600031</td><td>三一重工</td><td>2025半年报点评：2025H1海内外收入双增，Q2盈利能力持续提升</td><td>买入</td><td>东莞证券</td><td>1</td><td>1.27</td><td>17.0</td><td>1.5</td><td>14.0</td><td></td><td></td><td>工程机械</td><td>2025-08-25</td><td>https://pdf.dfcfw.com/pdf/H3_AP202508251734036461_1.pdf</td></tr><tr><td>16</td><td>600031</td><td>三一重工</td><td>2025半年度业绩点评：Q2归母净利润同比+38%超预期，龙头充分受益于国内外共振</td><td>买入</td><td>东吴证券</td><td>1</td><td>1.31</td><td>16.21</td><td>1.5</td><td>14.2</td><td></td><td></td><td>工程机械</td><td>2025-08-22</td><td>https://pdf.dfcfw.com/pdf/H3_AP202508221732446154_1.pdf</td></tr><tr><td>17</td><td>600031</td><td>三一重工</td><td>经营杠杆释放，看好公司利润持续增长</td><td>买入</td><td>国金证券</td><td>1</td><td>1.472</td><td>14.27</td><td>1.876</td><td>11.19</td><td></td><td></td><td>工程机械</td><td>2025-08-22</td><td>https://pdf.dfcfw.com/pdf/H3_AP202508221732153902_1.pdf</td></tr><tr><td>18</td><td>600031</td><td>三一重工</td><td>2025年一季度点评：业绩持续超预期，工程机械龙头充分受益于国内外需求共振</td><td>买入</td><td>东吴证券</td><td>1</td><td>1.31</td><td>14.59</td><td>1.5</td><td>12.79</td><td></td><td></td><td>工程机械</td><td>2025-04-30</td><td>https://pdf.dfcfw.com/pdf/H3_AP202504301664928887_1.pdf</td></tr><tr><td>19</td><td>600031</td><td>三一重工</td><td>盈利能力大幅提升，利润加速释放</td><td>买入</td><td>国金证券</td><td>1</td><td>1.418</td><td>13.53</td><td>1.805</td><td>10.63</td><td></td><td></td><td>工程机械</td><td>2025-04-30</td><td>https://pdf.dfcfw.com/pdf/H3_AP202504301664846485_1.pdf</td></tr><tr><td>20</td><td>600031</td><td>三一重工</td><td>盈利能力持续提升，现金流大幅改善</td><td>增持</td><td>中邮证券</td><td>1</td><td>1.26</td><td>15.2</td><td>1.54</td><td>12.41</td><td></td><td></td><td>工程机械</td><td>2025-04-26</td><td>https://pdf.dfcfw.com/pdf/H3_AP202504261662908483_1.pdf</td></tr><tr><td>21</td><td>600031</td><td>三一重工</td><td>费用管控提升盈利能力，经营性现金流大幅增长</td><td>买入</td><td>太平洋</td><td>1</td><td>1.28</td><td>14.92</td><td>1.56</td><td>12.22</td><td></td><td></td><td>工程机械</td><td>2025-04-25</td><td>https://pdf.dfcfw.com/pdf/H3_AP202504251662142069_1.pdf</td></tr><tr><td>22</td><td>600031</td><td>三一重工</td><td>经营质量持续改善，降本增效成果显著</td><td>增持</td><td>国信证券</td><td>1</td><td>1.19</td><td>16.1</td><td>1.49</td><td>12.9</td><td></td><td></td><td>工程机械</td><td>2025-04-23</td><td>https://pdf.dfcfw.com/pdf/H3_AP202504231660917235_1.pdf</td></tr><tr><td>23</td><td>600031</td><td>三一重工</td><td>2024年报点评：控费效果明显，国际化持续发力助增长</td><td>买入</td><td>东莞证券</td><td>1</td><td>1.18</td><td>16.0</td><td>1.44</td><td>13.0</td><td></td><td></td><td>工程机械</td><td>2025-04-22</td><td>https://pdf.dfcfw.com/pdf/H3_AP202504221660510341_1.pdf</td></tr><tr><td>24</td><td>600031</td><td>三一重工</td><td>稳健经营，现金流大幅改善</td><td>买入</td><td>山西证券</td><td>1</td><td>1.18</td><td>16.3</td><td>1.31</td><td>14.7</td><td></td><td></td><td>工程机械</td><td>2025-04-21</td><td>https://pdf.dfcfw.com/pdf/H3_AP202504211660086506_1.pdf</td></tr><tr><td>25</td><td>600031</td><td>三一重工</td><td>2024年报点评：业绩超预期，现金流表现优异</td><td>买入</td><td>东吴证券</td><td>1</td><td>1.31</td><td>14.59</td><td>1.5</td><td>12.79</td><td></td><td></td><td>工程机械</td><td>2025-04-20</td><td>https://pdf.dfcfw.com/pdf/H3_AP202504201659364134_1.pdf</td></tr><tr><td>26</td><td>600031</td><td>三一重工</td><td>2024 earnings inline; Emerging markets remain the key focus</td><td>买入</td><td>招银国际</td><td>1</td><td>1.05</td><td>18.2</td><td>1.16</td><td>16.4</td><td></td><td></td><td>工程机械</td><td>2025-04-18</td><td>https://pdf.dfcfw.com/pdf/H3_AP202504181658420794_1.pdf</td></tr><tr><td>27</td><td>600031</td><td>三一重工</td><td>现金流表现优异，业绩超预期</td><td>买入</td><td>国金证券</td><td>1</td><td>1.419</td><td>13.43</td><td>1.806</td><td>10.56</td><td></td><td></td><td>工程机械</td><td>2025-04-18</td><td>https://pdf.dfcfw.com/pdf/H3_AP202504181658387908_1.pdf</td></tr><tr><td>28</td><td>600031</td><td>三一重工</td><td>看好工程机械行业需求向上，公司回购股份彰显发展信心</td><td>买入</td><td>太平洋</td><td>1</td><td>1.26</td><td>15.87</td><td></td><td></td><td></td><td></td><td>工程机械</td><td>2025-03-20</td><td>https://pdf.dfcfw.com/pdf/H3_AP202503201645007772_1.pdf</td></tr><tr><td>29</td><td>600031</td><td>三一重工</td><td>拟回购10-20亿元公司股份，彰显上行周期成长信心</td><td>买入</td><td>东吴证券</td><td>1</td><td>1.34</td><td>14.97</td><td></td><td></td><td></td><td></td><td>工程机械</td><td>2025-03-20</td><td>https://pdf.dfcfw.com/pdf/H3_AP202503201644979940_1.pdf</td></tr><tr><td>30</td><td>600031</td><td>三一重工</td><td>内需持续好转，看好龙头主机厂业绩弹性</td><td>买入</td><td>东吴证券</td><td>1</td><td>1.34</td><td>12.94</td><td></td><td></td><td></td><td></td><td>工程机械</td><td>2024-11-25</td><td>https://pdf.dfcfw.com/pdf/H3_AP202411251641047375_1.pdf</td></tr></tbody></table><p class="truncated">显示前 30 条 / 共 301 条</p>
+        </section>
+        
+        <section class="card" id="stock_news">
+          <h2>个股新闻 <span class="badge">—</span></h2>
+          <p class="src">ak.stock_news_em · 109 ms · 行数 0</p>
+          <p class="desc">东财个股新闻流。</p>
+          <p class="empty">— 无数据 <span class="reason">(ArrowInvalid: Invalid regular expression: invalid escape sequence: \u)</span> —</p>
+        </section>
+        
+        <section class="card" id="hot_rank">
+          <h2>东财热度排名 <span class="badge">已有</span></h2>
+          <p class="src">akshare_sentiment.get_stock_hot_rank_akshare · 732 ms</p>
+          <p class="desc">东财热度榜：当前榜单 + 近 30 个交易日的关注度变化。</p>
+          <pre class="md"># Attention rank for 600031.SH (as of 2026-05-12)
+
+## East-Money Hot Rank (current snapshot)
+
+_Snapshot endpoint rate-limited; relying on per-stock history below._
+
+## East-Money Hot Rank (last 30 trading days)
+
+| 时间         |   排名 | 证券代码     |   新晋粉丝 |   铁杆粉丝 |
+|:-----------|-----:|:---------|-------:|-------:|
+| 2026-04-13 |  698 | SH600031 | 0.3128 | 0.6872 |
+| 2026-04-14 |  515 | SH600031 | 0.3042 | 0.6958 |
+| 2026-04-15 |  722 | SH600031 | 0.3175 | 0.6825 |
+| 2026-04-16 |  630 | SH600031 | 0.3318 | 0.6682 |
+| 2026-04-17 |  608 | SH600031 | 0.3475 | 0.6525 |
+| 2026-04-18 |  681 | SH600031 | 0.3438 | 0.6562 |
+| 2026-04-19 |  897 | SH600031 | 0.335  | 0.665  |
+| 2026-04-20 |  703 | SH600031 | 0.3253 | 0.6747 |
+| 2026-04-21 |  804 | SH600031 | 0.308  | 0.692  |
+| 2026-04-22 |  795 | SH600031 | 0.3018 | 0.6982 |
+| 2026-04-23 |  857 | SH600031 | 0.3104 | 0.6896 |
+| 2026-04-24 |  711 | SH600031 | 0.3563 | 0.6437 |
+| 2026-04-25 |  733 | SH600031 | 0.3452 | 0.6548 |
+| 2026-04-26 |  679 | SH600031 | 0.3481 | 0.6519 |
+| 2026-04-27 |  823 | SH600031 | 0.3617 | 0.6383 |
+| 2026-04-28 |  248 | SH600031 | 0.3934 | 0.6066 |
+| 2026-04-29 |  418 | SH600031 | 0.3912 | 0.6088 |
+| 2026-04-30 |  587 | SH600031 | 0.4161 | 0.5839 |
+| 2026-05-01 |  455 | SH600031 | 0.4403 | 0.5597 |
+| 2026-05-02 |  482 | SH600031 | 0.4304 | 0.5696 |
+| 2026-05-03 |  516 | SH600031 | 0.3545 | 0.6455 |
+| 2026-05-04 |  251 | SH600031 | 0.3494 | 0.6506 |
+| 2026-05-05 |  617 | SH600031 | 0.5254 | 0.4746 |
+| 2026-05-06 |  575 | SH600031 | 0.3345 | 0.6655 |
+| 2026-05-07 |  773 | SH600031 | 0.3383 | 0.6617 |
+| 2026-05-08 |  458 | SH600031 | 0.3936 | 0.6064 |
+| 2026-05-09 |  671 | SH600031 | 0.4009 | 0.5991 |
+| 2026-05-10 |  650 | SH600031 | 0.408  | 0.592  |
+| 2026-05-11 |  238 | SH600031 | 0.4983 | 0.5017 |
+| 2026-05-12 |  537 | SH600031 | 0.5    | 0.5    |</pre>
+        </section>
+        
+        <section class="card" id="lhb_detail">
+          <h2>龙虎榜（个股） <span class="badge">已有</span></h2>
+          <p class="src">akshare_capital_flow.get_lhb_detail_akshare · 3916 ms</p>
+          <p class="desc">近期上榜龙虎榜的全部明细（净买/净卖、营业部）。</p>
+          <pre class="md">## Dragon-Tiger seats for 600031.SH (last 10d)
+
+_No 龙虎榜 hits._</pre>
+        </section>
+        
+        <section class="card" id="lhb_inst">
+          <h2>龙虎榜（机构席位） <span class="badge">已有</span></h2>
+          <p class="src">akshare_capital_flow.get_lhb_institutional_akshare · 995 ms</p>
+          <p class="desc">近期机构席位上榜情况。</p>
+          <pre class="md">## Institutional LHB for 600031.SH (last 30d)
+
+_No data available._</pre>
+        </section>
+        
+        <section class="card" id="margin">
+          <h2>融资融券 <span class="badge">已有</span></h2>
+          <p class="src">akshare_capital_flow.get_margin_trading_akshare · 4117 ms</p>
+          <p class="desc">近 10 个交易日融资余额、融资买入额、融券余额。</p>
+          <pre class="md">## Margin trading for 600031.SH (last 10d)
+
+|   信用交易日期 |   标的证券代码 | 标的证券简称   |       融资余额 |     融资买入额 |     融资偿还额 |   融券余量 |   融券卖出量 |   融券偿还量 |
+|---------:|---------:|:---------|-----------:|----------:|----------:|-------:|--------:|--------:|
+| 20260506 |   600031 | 三一重工     | 1942403744 | 238721362 | 306678446 | 530900 |  223700 |   61200 |
+| 20260507 |   600031 | 三一重工     | 1938093232 | 118928404 | 123238915 | 503300 |   68900 |   96500 |
+| 20260508 |   600031 | 三一重工     | 1857396522 | 102784494 | 183481204 | 352600 |   25200 |  175900 |
+| 20260511 |   600031 | 三一重工     | 1896995463 | 289938420 | 250339479 | 694000 |  363700 |   22300 |</pre>
+        </section>
+        
+        <section class="card" id="north_indiv">
+          <h2>北向资金（个股净流入） <span class="badge">已有</span></h2>
+          <p class="src">akshare_capital_flow.get_north_capital_individual_akshare · 1488 ms</p>
+          <p class="desc">近期 沪/深 港通 持有该股的明细变化。</p>
+          <pre class="md">## Northbound holdings for 600031.SH (last 30d)
+
+_No data available._</pre>
+        </section>
+        
+        <section class="card" id="announcements">
+          <h2>公司公告 <span class="badge">已有</span></h2>
+          <p class="src">akshare_news.get_announcements_akshare · 153125 ms</p>
+          <p class="desc">巨潮 / 东财法定信披公告（窗口期内）。</p>
+          <pre class="md">## Announcements for 600031.SH 2026-04-28 → 2026-05-12
+
+|     代码 | 名称   | 公告标题                                    | 公告类型     | 公告日期       | 网址                                                                         |
+|-------:|:-----|:----------------------------------------|:---------|:-----------|:---------------------------------------------------------------------------|
+| 600031 | 三一重工 | 三一重工:三一重工股份有限公司第九届董事会第九次会议决议公告          | 董事会决议公告  | 2026-04-30 | https://data.eastmoney.com/notices/detail/600031/AN202604291821750036.html |
+| 600031 | 三一重工 | 三一重工:三一重工股份有限公司2026年第一季度报告              | 一季度报告全文  | 2026-04-30 | https://data.eastmoney.com/notices/detail/600031/AN202604291821750053.html |
+| 600031 | 三一重工 | 三一重工:三一重工股份有限公司董事和高级管理人员薪酬管理制度          | 管理办法/制度  | 2026-04-30 | https://data.eastmoney.com/notices/detail/600031/AN202604291821750015.html |
+| 600031 | 三一重工 | 三一重工:三一重工股份有限公司2025年可持续发展(ESG)报告摘要      | ESG公告    | 2026-04-30 | https://data.eastmoney.com/notices/detail/600031/AN202604291821750026.html |
+| 600031 | 三一重工 | 三一重工:三一重工股份有限公司董事和高级管理人员所持本公司股份及其变动管理制度 | 管理办法/制度  | 2026-04-30 | https://data.eastmoney.com/notices/detail/600031/AN202604291821750025.html |
+| 600031 | 三一重工 | 三一重工:三一重工股份有限公司2025年可持续发展(ESG)报告(英文版)   | ESG公告    | 2026-04-30 | https://data.eastmoney.com/notices/detail/600031/AN202604291821750044.html |
+| 600031 | 三一重工 | 三一重工:三一重工股份有限公司2025年可持续发展(ESG)报告        | ESG公告    | 2026-04-30 | https://data.eastmoney.com/notices/detail/600031/AN202604291821750014.html |
+| 600031 | 三一重工 | 三一重工:三一重工股份有限公司关于增加2026年日常关联交易预计的公告     | 关联交易     | 2026-04-30 | https://data.eastmoney.com/notices/detail/600031/AN202604291821750052.html |
+| 600031 | 三一重工 | 三一重工:三一重工股份有限公司H股公告-证券变动月报表(4月)         | 其他       | 2026-05-08 | https://data.eastmoney.com/notices/detail/600031/AN202605071822033103.html |
+| 600031 | 三一重工 | 三一重工:三一重工股份有限公司关于召开2025年年度股东会的通知        | 召开股东大会通知 | 2026-05-12 | https://data.eastmoney.com/notices/detail/600031/AN202605111822167183.html |
+| 600031 | 三一重工 | 三一重工:三一重工股份有限公司2025年年度股东会会议资料           | 股东大会资料   | 2026-05-12 | https://data.eastmoney.com/notices/detail/600031/AN202605111822167182.html |</pre>
+        </section>
+        
+        <section class="card" id="global_news">
+          <h2>全市场宏观新闻 <span class="badge">已有</span></h2>
+          <p class="src">akshare_news.get_global_news_akshare · 1100 ms</p>
+          <p class="desc">5 路并行的全球财经快讯（东财 + 财联社 + 新浪 + 富途 + 同花顺）。</p>
+          <pre class="md">## Global news as of 2026-05-12 (last 7d, merged from 4 sources)
+
+| title                                 | content                                                                                                                                                                                                                                                                                                                    | publish_time        | source    |
+|:--------------------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:--------------------|:----------|
+| nan                                   | StoneX：预计2026/27榨季全球食糖供应将存在190万吨缺口，对比之下2025/26榨季为供应过剩590万吨。                                                                                                                                                                                                                                                                | 2026-05-12 22:07:25 | sina      |
+| 俄罗斯称成功试射“萨尔马特”导弹                      | 俄罗斯总统普京通过视频会议系统听取了有关“萨尔马特”导弹系统成功试射的汇报。普京称，“萨尔马特”导弹射程可达35000公里。俄战略火箭军司令表示，“萨尔马特”导弹的成功发射将能够使首个“萨尔马特”导弹团在今年年底前进入战斗值班状态。（央视新闻）                                                                                                                                                                                                 | 2026-05-12 22:07:21 | ths       |
+| 俄罗斯经济部下调未来几年石油生产和出口预测                 | 俄罗斯经济发展部周一表示，在其基准情景预测中，已下调未来三年多项石油和天然气相关预期，包括原油及天然气产量以及出口规模。此前报道称，俄罗斯能源行业正面临多重压力，包括西方制裁以及乌克兰对能源基础设施的无人机袭击，这些因素已导致4月初原油产量下降。石油和天然气税收约占俄罗斯联邦预算收入的四分之一，而俄罗斯对石油征税的依据是产量，而非出口量。此次下调能源前景，也反映在整体经济预测下修之中。俄罗斯经济部称，在基准情景下，2026年俄罗斯石油产量预测下调1420万吨至5.11亿吨，2027年预测下调1660万吨至5.16亿吨；2026年石油出口预测下调450万吨至2.372亿吨，2027年预测下调1650万吨至2.274亿吨。  | 2026-05-12 22:04:24 | futu      |
+| 俄罗斯经济部：将2026年俄罗斯石油产量预测下调1420万吨至5.11亿吨 | 【俄罗斯经济部：将2026年俄罗斯石油产量预测下调1420万吨至5.11亿吨】俄罗斯经济部称，将2026年俄罗斯石油产量预测下调1420万吨至5.11亿吨，2027年预测下调1660万吨至5.16亿吨。                                                                                                                                                                                                                      | 2026-05-12 22:03:48 | eastmoney |
+| 京东CEO许冉：正在全面升级自研AI agent              | 京东集团CEO许冉在今日的京东财报业绩会上，京东正在全面升级自研的AI agent，帮助更加精准地识别、激发和匹配用户的需求。以京东AI智能助手京东京言为例，一季度用户使用次数同比增长超过300%。（科创板日报）                                                                                                                                                                                                                 | 2026-05-12 22:02:54 | ths       |
+| 俄罗斯下调2026年国内生产总值增长预期                  | 【俄罗斯下调2026年国内生产总值增长预期】俄罗斯将2026年国内生产总值增长预期从1.3%下调至0.4%。                                                                                                                                                                                                                                                                     | 2026-05-12 22:02:51 | eastmoney |
+| 水利部：将因地制宜开展小型供水工程规范化建设与改造             | 【水利部：将因地制宜开展小型供水工程规范化建设与改造】水利部农村水利水电司司长倪文进表示，对于因自然地理、经济等条件限制，到2030年仍难以实现自来水覆盖的农村居民饮水安全，将因地制宜开展小型供水工程规范化建设与改造，推广适用于高寒高海拔地区及偏远牧区供水需求的技术装备，持续提升供水保障程度和水质达标率。                                                                                                                                                                  | 2026-05-12 22:01:58 | eastmoney |
+| 京东高管：外卖业务一定会实现盈利                      | 【京东高管：外卖业务一定会实现盈利】一季度财报电话会议上，在被问及外卖业务的盈利目标时，京东CFO单甦表示，外卖业务最终一定会实现盈利。同时京东外卖不是一个独立的业务，京东在加快释放外卖业务的协同价值，外卖业务持续带动京东整体流量和用户的健康增长。                                                                                                                                                                                               | 2026-05-12 22:00:33 | eastmoney |
+| 纳斯达克100指数跌幅扩大至1%                      | 纳斯达克100指数跌幅扩大至1%。                                                                                                                                                                                                                                                                                                          | 2026-05-12 21:59:47 | eastmoney |
+| 受中东局势影响 德钢铁巨头下调本财年销售预期                | 【受中东局势影响 德钢铁巨头下调本财年销售预期】德国最大钢铁制造商蒂森克虏伯12日发布2025至2026财年上半年财报（截至2026年3月31日），下调本财年销售预期。该公司表示，中东冲突升级引发的能源价格冲击正加剧全球经济不确定性，影响汽车、钢铁等工业需求前景。                                                                                                                                                                                       | 2026-05-12 21:58:51 | eastmoney |
+| 燃气轮机行业现20余年来最严重缺货                     | 燃气轮机行业正在经历史无前例的供需错配。5月12日，从中国动力工程学会等主办的2026第十三届航空动力和燃气轮机聚焦展览会上获悉，2025年全球燃气轮机（含航改、工业、重型）需求量约为90-100GW，而全球主要制造商的年产能仅为55-60GW，供需缺口高达30-40GW。积压订单量已相当于行业过去2-3年的总产量，这是自2000年天然气发电大发展以来最严重的结构性缺货。                                                                                                                                | 2026-05-12 21:57:11 | futu      |
+| 海南在“十五五”期间将探索火箭回收复用                   | 【海南在“十五五”期间将探索火箭回收复用】近日，《海南省“十五五”海洋经济发展规划（2026—2030年）》正式印发实施。记者注意到，《规划》提出：“文昌依托深水良港与航天发射场，探索火箭回收复用、卫星海洋应用等产业，推进冯家湾现代渔业产业园绿色化发展。”                                                                                                                                                                                           | 2026-05-12 21:55:09 | eastmoney |
+| 国际足联秘书长：希望中国青少年能出现在各级世界杯赛场上           | 【国际足联秘书长：希望中国青少年能出现在各级世界杯赛场上】格拉夫斯特伦说：“中国U17女足昨天刚刚晋级U17世界杯，中国U17男足也将迎来关键比赛。如今U17世界杯每年举办，这能很好地激励孩子们，让他们每年都有机会征战世界杯。我们希望中国队能参与其中，无论是男足还是女足。我们也会与中国足协紧密合作，共同推动中国足球发展，这也是我们此行的主要目的。”                                                                                                                                            | 2026-05-12 21:54:27 | eastmoney |
+| 我国成功发射千帆极轨09组卫星                       | 【我国成功发射千帆极轨09组卫星】北京时间2026年5月12日19时59分，我国在太原卫星发射中心使用长征六号改运载火箭，成功将千帆极轨09组卫星发射升空，卫星顺利进入预定轨道，发射任务取得圆满成功。                                                                                                                                                                                                                       | 2026-05-12 21:53:30 | eastmoney |
+| 福州、厦门“春秋假”正式落地 峨眉山A：春秋假客流拉动效应显著       | 【福州、厦门“春秋假”正式落地 峨眉山A：春秋假客流拉动效应显著】5月12日，峨眉山旅游股份有限公司在业绩说明会上明确表示，春秋假客流拉动效应显著。当日，峨眉山A在回答投资者问题时透露，2025年秋假期间（11月19日-23日）景区全域接待游客10万人次，同比增长86.08%。与此同时，峨眉山A还指出，今年1月至4月，景区客流稳步回升。                                                                                                                                                  | 2026-05-12 21:53:00 | eastmoney |
+| 美防长称美伊停火协议依然有效                        | 【美防长称美伊停火协议依然有效】当地时间5月12日，美国国防部长赫格塞思表示，他们针对伊朗问题的所有情况都制定了相应计划。如有必要，他们有升级行动的计划，也有撤离部署的计划，还有调动资源的计划。目前，他们不便透露下一步的具体行动方案。他还表示，尽管近期局势紧张并发生交火，但伊朗停火协议依然有效。                                                                                                                                                                       | 2026-05-12 21:50:45 | eastmoney |
+| 伊朗就美在“12日战争”中行为向国际仲裁机构提起诉讼            | 【伊朗就美在“12日战争”中行为向国际仲裁机构提起诉讼】总台记者当地时间5月12日获悉，伊朗政府已向国际仲裁机构伊朗-美国求偿仲裁法庭（IUSCT）提起诉讼，起诉美国“对伊朗核设施进行军事侵略”“实施经济制裁”以及“威胁使用武力”。                                                                                                                                                                                                       | 2026-05-12 21:50:24 | eastmoney |
+| 马士基表示仍将避免途经霍尔木兹海峡                     | 马士基表示仍将避免途经霍尔木兹海峡。                                                                                                                                                                                                                                                                                                         | 2026-05-12 21:50:21 | eastmoney |
+| 特朗普：船只正驶往德克萨斯和路易斯安那装载石油               | 【特朗普：船只正驶往德克萨斯和路易斯安那装载石油】特朗普表示，船只正驶往德克萨斯和路易斯安那装载石油。                                                                                                                                                                                                                                                                        | 2026-05-12 21:49:07 | eastmoney |
+| 特朗普称封锁致伊朗经济崩溃，断言伊朗“100%”会放弃核武器        | 美国总统特朗普在接受纽约77WABC电台节目采访时表示，美国正在等待伊朗因其港口遭到封锁而发生经济崩溃，并补充说，他确信自己能够阻止该政权获得核武器。特朗普称：“我们实施了封锁，让他们没有钱，也弄不到钱。”在谈到冲突时，特朗普说：“这只是个时间问题，我们不必着急。我们已经消灭了他们的海军，消灭了他们的空军，也消灭了他们的领导层。”尽管与德黑兰的谈判陷入停滞，特朗普表示，他完全相信伊朗将放弃铀浓缩及任何通往核武器的路径。他声称美国的压力与封锁正迫使伊朗就范，并补充道：“他们100%会停止。”特朗普还表示，美国正与伊朗官员保持直接接触，并且不急于达成协议。此前他曾将脆弱的停火协议形容为“命悬一线”，目前双方紧张局势依然严峻。 | 2026-05-12 21:48:40 | futu      |
+| 摩根大通CEO：目前市场过于“狂热”                    | 摩根大通CEO杰米·戴蒙表示，目前市场过于“狂热”。                                                                                                                                                                                                                                                                                                 | 2026-05-12 21:47:58 | eastmoney |
+| 英伟达股价上涨1.65%，再创历史新高                   | 英伟达股价上涨1.65%，报223.068美元/股，再创历史新高，总市值达到5.42万亿美元。                                                                                                                                                                                                                                                                            | 2026-05-12 21:45:52 | ths       |
+| 经济学家：美国经济对此轮价格冲击仍然表现出韧性               | 爱德华琼斯投资策略高级经济学家詹姆斯·麦肯评美国CPI报告，“美国居民继续承受飙升能源成本的冲击，这在疫情后本已持续的通胀压力之上又加了一层负担。此外，由于霍尔木兹海峡仍然处于事实上关闭状态，我们可能还没有看到这轮价格压力的峰值，风险正在上升。好消息是，到目前为止经济对这轮价格冲击仍然表现出韧性。许多消费者今年受益于退税，就业市场从2025年的近停滞状态有所回升，企业利润增长也相当强劲。这些缓冲是有限的，但我们预计它们足以让经济在一定程度上承受这次冲击。”                                                                                     | 2026-05-12 21:44:37 | futu      |
+| 英伟达盘中再创新高 总市值一度突破5.4万亿美元              | 【英伟达股价连续5个交易日上涨 总市值达到5.42万亿美元】英伟达股价连续5个交易日上涨，截至发稿涨1.65%，报223.068美元/股，再创历史新高，总市值达到5.42万亿美元。                                                                                                                                                                                                                                 | 2026-05-12 21:44:34 | eastmoney |
+| 韩国ETF EWY在纽约下跌4.3%                    | 韩国ETF EWY在纽约下跌4.3%，此前KOSPI指数大跌。                                                                                                                                                                                                                                                                                            | 2026-05-12 21:43:39 | eastmoney |
+| 文投控股与点众科技达成战略合作                       | 5月12日，在第六届中国（北京）广电媒体融合发展大会上，文投控股股份有限公司与北京点众科技股份有限公司正式签署战略合作协议。双方聚焦IP开发、AIGC技术、精品动漫游戏等领域深度协同，以科技赋能文化创新，携手布局AIGC与数字内容融合新赛道。（人民财讯）                                                                                                                                                                                            | 2026-05-12 21:43:34 | ths       |
+| 中信建投黄文涛：投资“十五五”中国方略 关注四大重点政策          | 【中信建投黄文涛：投资“十五五”中国方略 关注四大重点政策】在中信建投2026年度中期资本市场投资峰会上，中信建投证券研究发展部行政负责人、首席经济学家黄文涛分享了对中国经济与资本市场的展望。他表示，中国崛起，本质是世界格局迈向多极，宏观力量东升西降，综合国力的提升，这势必伴随人民币的崛起和人民币资产的崛起。                                                                                                                                                                | 2026-05-12 21:42:00 | eastmoney |
+| 纳斯达克中国金龙指数跌幅扩大，现跌1.0%                 | 纳斯达克中国金龙指数跌幅扩大，现跌1.0%，最新报6993.21点。                                                                                                                                                                                                                                                                                         | 2026-05-12 21:41:52 | ths       |
+| 纳斯达克中国金龙指数跌幅扩大至1%                     | 纳斯达克中国金龙指数跌幅扩大，现跌1.0%，最新报6993.21点。                                                                                                                                                                                                                                                                                         | 2026-05-12 21:41:33 | eastmoney |
+| 国际电力解决方案公司股价下跌34%                     | 国际电力解决方案公司股价下跌34%。                                                                                                                                                                                                                                                                                                         | 2026-05-12 21:40:20 | eastmoney |</pre>
+        </section>
+        <footer>由 TradingAgents · ths_full_scraper 生成 · 2026-05-12 22:07:52</footer></main>
+  </div>
+</body>
+</html>

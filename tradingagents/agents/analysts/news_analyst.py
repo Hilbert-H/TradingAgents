@@ -8,6 +8,11 @@ from tradingagents.agents.utils.agent_utils import (
     get_insider_transactions,
     get_announcements,
     get_language_instruction,
+    # THS event additions
+    get_investor_qa,
+    get_performance_briefing,
+    get_restricted_release,
+    get_pledge_ratio,
 )
 from tradingagents.dataflows.akshare_common import is_a_share
 from tradingagents.dataflows.config import get_config
@@ -35,6 +40,14 @@ def create_news_analyst(llm):
             news_block          = get_news.func(ticker, start_date, current_date)
             insider_block       = get_insider_transactions.func(ticker)
             global_news_block   = get_global_news.func(current_date)
+            # THS event block — concat 4 sub-feeds so the LLM gets event/risk
+            # context in ONE structured place rather than 4 sparse subsections.
+            events_block = "\n\n".join([
+                get_investor_qa.func(ticker, current_date),
+                get_performance_briefing.func(ticker, current_date),
+                get_restricted_release.func(ticker, current_date),
+                get_pledge_ratio.func(ticker, current_date),
+            ])
 
             system_message = _build_a_share_system_message(
                 ticker=ticker,
@@ -44,6 +57,7 @@ def create_news_analyst(llm):
                 news_block=news_block,
                 insider_block=insider_block,
                 global_news_block=global_news_block,
+                events_block=events_block,
             )
 
             # No tool-binding for A-share — everything is in the prompt.
@@ -128,15 +142,16 @@ def _build_a_share_system_message(
     news_block: str,
     insider_block: str,
     global_news_block: str,
+    events_block: str,
 ) -> str:
-    """Pre-fetched-data prompt that mandates four independent subsections.
+    """Pre-fetched-data prompt that mandates five independent subsections.
 
-    Critical: each of 法定信披 / 近期新闻 / 内部交易 / 宏观与行业 must be
+    Critical: each of 法定信披 / 近期新闻 / 内部交易 / 宏观 / 公司事件 must be
     its own ``###`` section in the output. The old prompt let the LLM
     collapse them into a single narrative table, which lost signal —
-    particularly insider-transaction data.
+    particularly insider-transaction and event-calendar data.
     """
-    return f"""You are an A-share news & corporate-action analyst. Produce a comprehensive news report for {ticker} covering {start_date} → {end_date}. Four data sources have already been collected for you from akshare; use only this data plus your prior knowledge of the company / sector — do not invent specifics.
+    return f"""You are an A-share news & corporate-action analyst. Produce a comprehensive news report for {ticker} covering {start_date} → {end_date}. Five data sources have already been collected for you from akshare; use only this data plus your prior knowledge of the company / sector — do not invent specifics.
 
 ## Data sources (pre-fetched, in this prompt)
 
@@ -168,6 +183,13 @@ Macro / policy / cross-asset headlines. Use to identify policy tailwinds or head
 {global_news_block}
 <end_of_global>
 
+### 5) 公司事件与风险因素 — 互动易问答 / 业绩说明会日程 / 限售解禁 / 股权质押
+Concatenated event/risk feed (4 sub-feeds). 互动易 reveals what shareholders currently care about; 业绩说明会 gives next earnings-call dates; 限售解禁 is forward-looking supply overhang (unlock date + size + % of market cap); 股权质押 is current pledge-ratio risk. Use this to identify event-driven catalysts and supply/risk overhangs.
+
+<start_of_events>
+{events_block}
+<end_of_events>
+
 ## Required output structure (MUST follow — top-level sections are H3 ``###`` to nest cleanly)
 
 ### 一、综合研判
@@ -186,12 +208,20 @@ Quote the actual insider records from the data block. For each: 时间 | 人物 
 ### 五、宏观与行业背景
 **MANDATORY independent section.** Pull 3–5 macro / policy / industry headlines from the global news block that are relevant to this stock's sector. State which policy axis (e.g. 半导体国产替代 / 新能源补贴 / 央行流动性) is most relevant.
 
-### 六、综合分析及交易建议依据
-Tie the four sources together. What's the dominant theme? What contradicts? What catalysts in the next 1–5 days?
+### 六、公司事件与风险因素
+**MANDATORY independent section.** Cover four sub-points in turn:
+1. **互动易问答** — top investor concerns this quarter (1-2 representative Qs + company answers).
+2. **业绩说明会日程** — next scheduled earnings briefing date (if any).
+3. **限售解禁** — list any upcoming unlocks within 90 days with date / size / % of market cap. **Flag any unlock > 1% of market cap as a supply overhang.**
+4. **股权质押** — current 质押比例. Flag质押比例 > 30% as a risk factor; > 50% as critical.
+If all four sub-feeds are empty, state explicitly that no event/risk signals were found in window.
 
-### 七、关键信息汇总表
+### 七、综合分析及交易建议依据
+Tie the five sources together. What's the dominant theme? What contradicts? What catalysts in the next 1–5 days? Cross-reference 法定公告 against the event calendar to find policy / earnings / unlock alignment.
+
+### 八、关键信息汇总表
 | 类别 | 关键信息 | 时间 | 影响方向 | 重要性 (⭐) |
-Cover at least one row per data source so all four sources appear.
+Cover at least one row per data source so all five sources appear (5 rows minimum).
 
 ## Rules
 1. **Independence of sections 二–五 is non-negotiable.** Each MUST appear with its ``###`` header even if the data block says "_No filings._" or "_Source unavailable._". In that case, write one short sentence acknowledging the gap, then move on.

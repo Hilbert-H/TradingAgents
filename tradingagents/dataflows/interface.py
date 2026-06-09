@@ -54,6 +54,29 @@ from .akshare_capital_flow import (
     get_margin_trading_akshare,
     get_fund_flow_akshare,
 )
+# THS comprehensive scrapers (string-returning adapters)
+from .ths_full_scraper import (
+    # Fundamentals
+    get_financial_indicators_md,
+    get_revenue_breakdown_md,
+    get_dividend_history_md,
+    get_profit_forecast_md,
+    # Sentiment / events
+    get_concept_tags_md,
+    get_stock_comment_md,
+    get_xueqiu_hot_md,
+    get_investor_qa_md,
+    get_performance_briefing_md,
+    get_restricted_release_md,
+    get_pledge_ratio_md,
+    # Holders / capital flow
+    get_top10_holders_md,
+    get_top10_free_holders_md,
+    get_concerted_action_md,
+    get_block_trade_md,
+    get_shareholder_change_md,
+    get_management_change_md,
+)
 
 # TuShare-backed implementations (preferred for A-share when TUSHARE_TOKEN is set).
 # Each tushare_* function falls back to its akshare_* sibling via the
@@ -105,7 +128,12 @@ TOOLS_CATEGORIES = {
             "get_fundamentals",
             "get_balance_sheet",
             "get_cashflow",
-            "get_income_statement"
+            "get_income_statement",
+            # THS additions (A-share only)
+            "get_financial_indicators",
+            "get_revenue_breakdown",
+            "get_dividend_history",
+            "get_profit_forecast",
         ]
     },
     "news_data": {
@@ -114,6 +142,10 @@ TOOLS_CATEGORIES = {
             "get_news", "get_global_news", "get_insider_transactions",
             "get_announcements",
             "get_stock_hot_rank", "get_shareholder_count", "get_research_reports",
+            # THS sentiment + event additions
+            "get_concept_tags", "get_stock_comment", "get_xueqiu_hot",
+            "get_investor_qa", "get_performance_briefing",
+            "get_restricted_release", "get_pledge_ratio",
         ],
     },
     "capital_flow": {
@@ -122,6 +154,10 @@ TOOLS_CATEGORIES = {
             "get_lhb_detail", "get_lhb_institutional",
             "get_north_capital_individual", "get_north_capital_overall",
             "get_margin_trading", "get_fund_flow",
+            # THS holder + block-trade additions
+            "get_top10_holders", "get_top10_free_holders",
+            "get_concerted_action", "get_block_trade",
+            "get_shareholder_change", "get_management_change",
         ],
     },
 }
@@ -216,6 +252,28 @@ VENDOR_METHODS = {
         "tushare": get_fund_flow_tushare,
         "akshare": get_fund_flow_akshare,
     },
+
+    # ─── THS comprehensive scrapers (A-share only, akshare-backed) ──────────
+    # Fundamentals
+    "get_financial_indicators":   {"akshare": get_financial_indicators_md},
+    "get_revenue_breakdown":      {"akshare": get_revenue_breakdown_md},
+    "get_dividend_history":       {"akshare": get_dividend_history_md},
+    "get_profit_forecast":        {"akshare": get_profit_forecast_md},
+    # Sentiment / event
+    "get_concept_tags":           {"akshare": get_concept_tags_md},
+    "get_stock_comment":          {"akshare": get_stock_comment_md},
+    "get_xueqiu_hot":             {"akshare": get_xueqiu_hot_md},
+    "get_investor_qa":            {"akshare": get_investor_qa_md},
+    "get_performance_briefing":   {"akshare": get_performance_briefing_md},
+    "get_restricted_release":     {"akshare": get_restricted_release_md},
+    "get_pledge_ratio":           {"akshare": get_pledge_ratio_md},
+    # Holders / capital flow
+    "get_top10_holders":          {"akshare": get_top10_holders_md},
+    "get_top10_free_holders":     {"akshare": get_top10_free_holders_md},
+    "get_concerted_action":       {"akshare": get_concerted_action_md},
+    "get_block_trade":            {"akshare": get_block_trade_md},
+    "get_shareholder_change":     {"akshare": get_shareholder_change_md},
+    "get_management_change":      {"akshare": get_management_change_md},
 }
 
 def get_category_for_method(method: str) -> str:

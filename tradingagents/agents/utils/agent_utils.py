@@ -11,7 +11,12 @@ from tradingagents.agents.utils.fundamental_data_tools import (
     get_fundamentals,
     get_balance_sheet,
     get_cashflow,
-    get_income_statement
+    get_income_statement,
+    # THS additions (A-share comprehensive)
+    get_financial_indicators,
+    get_revenue_breakdown,
+    get_dividend_history,
+    get_profit_forecast,
 )
 from tradingagents.agents.utils.news_data_tools import (
     get_news,
@@ -21,6 +26,14 @@ from tradingagents.agents.utils.news_data_tools import (
     get_stock_hot_rank,
     get_shareholder_count,
     get_research_reports,
+    # THS additions (A-share comprehensive)
+    get_concept_tags,
+    get_stock_comment,
+    get_xueqiu_hot,
+    get_investor_qa,
+    get_performance_briefing,
+    get_restricted_release,
+    get_pledge_ratio,
 )
 from tradingagents.agents.utils.capital_flow_tools import (
     get_lhb_detail,
@@ -29,6 +42,13 @@ from tradingagents.agents.utils.capital_flow_tools import (
     get_north_capital_overall,
     get_margin_trading,
     get_fund_flow,
+    # THS additions (A-share comprehensive)
+    get_top10_holders,
+    get_top10_free_holders,
+    get_concerted_action,
+    get_block_trade,
+    get_shareholder_change,
+    get_management_change,
 )
 
 
